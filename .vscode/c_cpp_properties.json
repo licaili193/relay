@@ -7,6 +7,13 @@
                 "/usr/local/include/**",
                 "/usr/include/**"
             ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/**",
+                    "/usr/local/include/**",
+                    "/usr/include/**"
+                ]
+            },
             "defines": [],
             "cStandard": "c17",
             "cppStandard": "c++17",
