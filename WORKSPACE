@@ -18,4 +18,5 @@ git_repository(
     patch_cmds = [
         "./make_converter/gen.sh",
     ],
+    recursive_init_submodules = True,
 )
