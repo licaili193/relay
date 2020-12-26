@@ -3,5 +3,6 @@ cc_binary(
     srcs = ["hello_world.cpp"],
     deps = [
         "//third_party/practical_socket:practical_socket",
+        "@ffmpeg//:avcodec"
     ],
 )
