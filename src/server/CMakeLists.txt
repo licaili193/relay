@@ -1,10 +1,9 @@
-include_directories(${CMAKE_SOURCE_DIR})
+project(server)
 
-add_executable (hellow_world 
+add_executable (server 
     hello_world.cpp
-    src/third_party/practical_socket/practical_socket.h
 )
 
-target_link_libraries (hellow_world PUBLIC 
-    practial_socket
+target_link_libraries (server PUBLIC 
+    practical_socket
 )

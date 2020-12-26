@@ -1,7 +1,9 @@
-add_library (practical_socket SHARED  
-    practical_socket.cpp
+project(practical_socket)
+
+add_library (${PROJECT_NAME} SHARED 
+    src/practical_socket.cpp
 )
 
-target_include_directories (practical_socket PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories (${PROJECT_NAME} PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
