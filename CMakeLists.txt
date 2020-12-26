@@ -1,0 +1,11 @@
+cmake_minimum_required (VERSION 3.19.2)
+project (Relay)
+
+set(CMAKE_CXX_STANDARD 14)
+message("CXX Standard: ${CMAKE_CXX_STANDARD}")
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+add_subdirectory (src)
