@@ -1,2 +1,2 @@
-add_subdirectory (server)
+add_subdirectory (communication)
 add_subdirectory (third_party)
