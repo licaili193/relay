@@ -227,7 +227,10 @@ int CommunicatingSocket::recv(void *buffer, int bufferLen)
     throw(SocketException) {
   int rtn;
   if ((rtn = ::recv(sockDesc, (raw_type *) buffer, bufferLen, 0)) < 0) {
-    throw SocketException("Received failed (recv())", true);
+    int err = errno;
+    if ((err != EAGAIN) && (err != EWOULDBLOCK)) {
+      throw SocketException("Received failed (recv())", true);
+    }
   }
 
   return rtn;
@@ -363,7 +366,10 @@ int UDPSocket::recvFrom(void *buffer, int bufferLen, string &sourceAddress,
   int rtn;
   if ((rtn = recvfrom(sockDesc, (raw_type *) buffer, bufferLen, 0, 
                       (sockaddr *) &clntAddr, (socklen_t *) &addrLen)) < 0) {
-    throw SocketException("Receive failed (recvfrom())", true);
+    int err = errno;
+    if ((err != EAGAIN) && (err != EWOULDBLOCK)) {
+      throw SocketException("Receive failed (recvfrom())", true);
+    }
   }
   sourceAddress = inet_ntoa(clntAddr.sin_addr);
   sourcePort = ntohs(clntAddr.sin_port);
