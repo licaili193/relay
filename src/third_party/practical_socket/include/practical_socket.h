@@ -97,6 +97,18 @@ public:
     unsigned short localPort = 0) throw(SocketException);
 
   /**
+   *   Set the blocking mode of the socket's receiving method.
+   *   @param blocking whether the socket is blocking
+   *   @exception SocketException thrown if setting blocking mdoe fails
+   */
+  void setBlocking(bool blocking = true) throw(SocketException);
+
+  /**
+   *   Get the blocking mode of the socket's receiving method.
+   */
+  bool getBlocking();
+
+  /**
    *   If WinSock, unload the WinSock DLLs; otherwise do nothing.  We ignore
    *   this in our sample client code but include it in the library for
    *   completeness.  If you are running on Windows and you are concerned

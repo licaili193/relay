@@ -30,6 +30,7 @@
   #include <arpa/inet.h>       // For inet_addr()
   #include <unistd.h>          // For close()
   #include <netinet/in.h>      // For sockaddr_in
+  #include <fcntl.h>           // For fcntl()
   typedef void raw_type;       // Type used for raw data on this platform
 #endif
 
@@ -172,6 +173,26 @@ unsigned short Socket::resolveService(const string &service,
     return atoi(service.c_str());  /* Service is port number */
   else 
     return ntohs(serv->s_port);    /* Found port (network byte order) by name */
+}
+
+void Socket::setBlocking(bool blocking) throw(SocketException) {
+  if (blocking) {
+    if(fcntl(sockDesc, F_SETFL, fcntl(sockDesc, F_GETFL) & ~O_NONBLOCK) < 0) {
+      throw SocketException("fcntl() failed");
+    }
+  } else {
+    if(fcntl(sockDesc, F_SETFL, fcntl(sockDesc, F_GETFL) | O_NONBLOCK) < 0) {
+      throw SocketException("fcntl() failed");
+    }
+  }
+}
+
+bool Socket::getBlocking() {
+  if(fcntl(sockDesc, F_GETFL) & O_NONBLOCK) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 // CommunicatingSocket Code

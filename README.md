@@ -21,3 +21,13 @@ cd build
 cmake -DBUILD_LIST=core,imgproc,imgcodecs,videoio,highgui,video ..
 sudo make install
 ```
+
+* glog
+```
+sudo apt-get install libgoogle-glog-dev
+```
+
+* gflags
+```
+sudo apt-get install libgflags-dev
+```
