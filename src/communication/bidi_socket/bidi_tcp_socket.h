@@ -11,6 +11,9 @@
 #define COMMAND_NULL 0
 #define COMMAND_DISCONNECT 1
 
+#define FIN_INDEX_KEY 12245
+#define FIN_SIZE_KEY 5132466
+
 namespace relay {
 namespace communication {
 

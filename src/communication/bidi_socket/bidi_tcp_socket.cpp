@@ -95,7 +95,7 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
       }
     }
     LOG(WARNING) << "Socket sending fin";
-    FrameHeader header = {index_, 0, COMMAND_DISCONNECT};
+    FrameHeader header = {FIN_INDEX_KEY, FIN_SIZE_KEY, COMMAND_DISCONNECT};
     char header_buffer[FrameHeader::header_size];
     header.makeFrameHeader(header_buffer);
     socket->send(header_buffer, FrameHeader::header_size);

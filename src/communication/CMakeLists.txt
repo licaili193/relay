@@ -23,7 +23,7 @@ target_link_libraries (server PUBLIC
 )
 
 add_executable (bidi_tcp_server_test 
-bidi_tcp_server_test.cpp
+    bidi_tcp_server_test.cpp
 )
 
 target_link_libraries (bidi_tcp_server_test PUBLIC 
@@ -34,12 +34,22 @@ target_link_libraries (bidi_tcp_server_test PUBLIC
 )
 
 add_executable (bidi_tcp_client_test 
-bidi_tcp_client_test.cpp
+    bidi_tcp_client_test.cpp
 )
 
 target_link_libraries (bidi_tcp_client_test PUBLIC 
     practical_socket
     bidi_socket
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
+add_executable (relay_server 
+    relay_server.cpp
+)
+
+target_link_libraries (relay_server PUBLIC 
+    practical_socket
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
 )
