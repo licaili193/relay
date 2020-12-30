@@ -77,6 +77,10 @@ int main(int argc, char** argv) {
 
         bool inner_loop_running = true;
         sock->setBlocking(false);
+        {
+          std::lock_guard<std::mutex> guard(mu_1);
+          buffer_1.clear();
+        }
         while (running.load() && inner_loop_running) {
           char buffer[TCP_BUFFER_SIZE];
           int recv_size;
@@ -134,6 +138,10 @@ int main(int argc, char** argv) {
 
         bool inner_loop_running = true;
         sock->setBlocking(false);
+        {
+          std::lock_guard<std::mutex> guard(mu_2);
+          buffer_2.clear();
+        }
         while (running.load() && inner_loop_running) {
           char buffer[TCP_BUFFER_SIZE];
           int recv_size;
@@ -171,7 +179,10 @@ int main(int argc, char** argv) {
     LOG(INFO) << "[Con2] Bye bye";
   });
 
-  t_1.join();
-  t_2.join();
+  t_1.detach();
+  t_2.detach();
+  while (running.load()) {
+    usleep(100000);
+  }
   return 0;
 }
