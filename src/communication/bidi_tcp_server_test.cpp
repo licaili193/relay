@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
       }
     }
   });
+  worker.detach();
 
   try {
     TCPServerSocket serv_sock(FLAGS_port);
@@ -90,6 +91,7 @@ int main(int argc, char** argv) {
           bidi_sock.stop();
         }
       }
+      bidi_sock.join();
     }
   } catch (SocketException &e) {
     LOG(FATAL) << "Error occurred when accepting connection: " << e.what();

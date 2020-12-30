@@ -54,35 +54,35 @@ int main(int argc, char** argv) {
       }
     }
   });
+  worker.detach();
 
   try {
-    while (running.load()) {
-      LOG(INFO) << "Connecting to server: "
-                << FLAGS_foreign_addr 
-                << ":" 
-                << FLAGS_foreign_port;
+    LOG(INFO) << "Connecting to server: "
+              << FLAGS_foreign_addr 
+              << ":" 
+              << FLAGS_foreign_port;
 
-      relay::communication::BiDirectionalTCPSocket bidi_sock(
-          new TCPSocket(FLAGS_foreign_addr, FLAGS_foreign_port));
-      while (bidi_sock.running()) {
-        bidi_sock.comsume([](std::deque<std::string>& buffer){
-          while (!buffer.empty()) {
-            LOG(INFO) << "Message received: " << buffer.front();
-            buffer.pop_front();
-          }
-        });
-        if (running.load()) {
-          std::lock_guard<std::mutex> guard(mu);
-          if (has_new_input) {
-            bidi_sock.push(input.size(), input.c_str());
-            LOG(INFO) << "Message sent: " << input;
-            has_new_input = false;
-          }
-        } else {
-          bidi_sock.stop();
+    relay::communication::BiDirectionalTCPSocket bidi_sock(
+        new TCPSocket(FLAGS_foreign_addr, FLAGS_foreign_port));
+    while (bidi_sock.running()) {
+      bidi_sock.comsume([](std::deque<std::string>& buffer){
+        while (!buffer.empty()) {
+          LOG(INFO) << "Message received: " << buffer.front();
+          buffer.pop_front();
         }
+      });
+      if (running.load()) {
+        std::lock_guard<std::mutex> guard(mu);
+        if (has_new_input) {
+          bidi_sock.push(input.size(), input.c_str());
+          LOG(INFO) << "Message sent: " << input;
+          has_new_input = false;
+        }
+      } else {
+        bidi_sock.stop();
       }
     }
+    bidi_sock.join();
   } catch (SocketException &e) {
     LOG(FATAL) << "Error occurred when accepting connection: " << e.what();
   }

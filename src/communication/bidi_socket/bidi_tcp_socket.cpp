@@ -1,5 +1,4 @@
 #include <memory>
-#include <thread>
 #include <string.h>
 
 #include "bidi_tcp_socket.h"
@@ -28,19 +27,19 @@ BiDirectionalTCPSocket::BiDirectionalTCPSocket(
   max_buffer_size_ = max_buffer_size;
 
   running_.store(true);
-  std::thread work_thread(&BiDirectionalTCPSocket::worker, this, sock);
-  work_thread.detach();
+  thread_ = std::thread(&BiDirectionalTCPSocket::worker, this, sock);
 }
 
 void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
   std::unique_ptr<TCPSocket>socket(sock);
+  socket->setBlocking(false);
   try {
     while (running_.load()) {
       // Receiving
       while (true) {
         char header_buffer[FrameHeader::header_size];
-        size_t h_recv_sz_accum = 0;
-        size_t h_recv_sz = 0;
+        int h_recv_sz_accum = 0;
+        int h_recv_sz = 0;
         bool got_header = false;
 
         while (
@@ -59,8 +58,8 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
 
           constexpr size_t buffer_size = 87380;
           char buffer[buffer_size];
-          size_t recv_sz_accum = 0;
-          size_t recv_sz = 0;
+          int recv_sz_accum = 0;
+          int recv_sz = 0;
 
           while (
             recv_sz_accum < header.length && 
@@ -80,7 +79,6 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
         }
       }
 
-      // Sending
       {
         std::lock_guard<std::mutex> guard(send_mutex_);
         while (!send_buffer_.empty()) {
@@ -96,6 +94,7 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
         }
       }
     }
+    LOG(WARNING) << "Socket sending fin";
     FrameHeader header = {index_, 0, COMMAND_DISCONNECT};
     char header_buffer[FrameHeader::header_size];
     header.makeFrameHeader(header_buffer);
@@ -126,6 +125,14 @@ void BiDirectionalTCPSocket::comsume(
 
 bool BiDirectionalTCPSocket::running() {
   return running_.load();
+}
+
+void BiDirectionalTCPSocket::join() {
+  thread_.join();
+}
+
+void BiDirectionalTCPSocket::detach() {
+  thread_.detach();
 }
 
 }

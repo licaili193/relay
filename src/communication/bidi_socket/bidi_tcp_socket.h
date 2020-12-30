@@ -3,6 +3,7 @@
 #include <functional>
 #include <mutex>
 #include <string>
+#include <thread>
 
 #include "practical_socket.h"
 #include <glog/logging.h>
@@ -32,6 +33,9 @@ class BiDirectionalTCPSocket {
   void push(size_t payload_size, const char* payload);
   void comsume(function<void(std::deque<std::string>&)> fun);
   bool running();
+
+  void join();
+  void detach();
   
  protected:
   std::atomic_bool running_;
@@ -40,6 +44,7 @@ class BiDirectionalTCPSocket {
   size_t max_buffer_size_ = 10;
 
   uint32_t index_ = 0;
+  std::thread thread_;
 
   std::deque<std::string> recv_buffer_;
   std::deque<std::string> send_buffer_;
