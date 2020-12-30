@@ -21,3 +21,25 @@ target_link_libraries (server PUBLIC
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
 )
+
+add_executable (bidi_tcp_server_test 
+bidi_tcp_server_test.cpp
+)
+
+target_link_libraries (bidi_tcp_server_test PUBLIC 
+    practical_socket
+    bidi_socket
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
+add_executable (bidi_tcp_client_test 
+bidi_tcp_client_test.cpp
+)
+
+target_link_libraries (bidi_tcp_client_test PUBLIC 
+    practical_socket
+    bidi_socket
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)

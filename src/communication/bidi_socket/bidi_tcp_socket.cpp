@@ -119,9 +119,13 @@ void BiDirectionalTCPSocket::push(size_t payload_size, const char* payload) {
 }
 
 void BiDirectionalTCPSocket::comsume(
-    function<void(const std::deque<std::string>&)> fun) {
+    function<void(std::deque<std::string>&)> fun) {
   std::lock_guard<std::mutex> guard(recv_mutex_);
   fun(recv_buffer_);
+}
+
+bool BiDirectionalTCPSocket::running() {
+  return running_.load();
 }
 
 }
