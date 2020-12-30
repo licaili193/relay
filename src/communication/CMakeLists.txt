@@ -1,12 +1,9 @@
-project(server)
+project(communication)
 
-# include (FindGlog)
+add_subdirectory (bidi_socket)
+
+include (FindGlog)
 include (FindGFlags)
-
-find_library(AVCODEC_LIBRARY avcodec)
-find_package(OpenCV REQUIRED)
-find_package(gflags REQUIRED)
-find_package(Glog REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
@@ -18,6 +15,7 @@ add_executable (server
 
 target_link_libraries (server PUBLIC 
     practical_socket
+    bidi_socket
     ${AVCODEC_LIBRARY}
     ${OpenCV_LIBS}
     ${GLOG_LIBRARIES}
