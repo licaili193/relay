@@ -34,7 +34,7 @@ class BiDirectionalTCPSocket {
 
   void stop();
   void push(size_t payload_size, const char* payload);
-  void comsume(function<void(std::deque<std::string>&)> fun);
+  void comsume(std::function<void(std::deque<std::string>&)> fun);
   bool running();
 
   void join();
