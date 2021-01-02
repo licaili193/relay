@@ -14,6 +14,7 @@ class AsyncPayloadFramework {
  public:
   void stop();
   virtual void push(size_t payload_size, const char* payload);
+  void push(std::string payload);
   void comsume(std::function<void(std::deque<std::string>&)> fun);
   bool running();
 

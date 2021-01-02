@@ -21,6 +21,7 @@ void H264Decoder::push(size_t payload_size, const char* payload) {
 
 void H264Decoder::worker() {
   AVFrame* frame;
+  AVFrame* scaled_frame;
   
   AVCodec* codec = avcodec_find_decoder(codec_id_);
   if (!codec) {
@@ -30,6 +31,8 @@ void H264Decoder::worker() {
   if (!c) {
     LOG(FATAL) << "Failed to allocate decoder codec context";
   }
+
+  static SwsContext *img_c = NULL; 
   
   AVPacket pkt;
   av_init_packet(&pkt);
@@ -41,6 +44,11 @@ void H264Decoder::worker() {
   frame = av_frame_alloc();
   if (!frame) {
     LOG(FATAL) << "Failed to allocate image frame for decoder";
+  }
+
+  scaled_frame = av_frame_alloc();
+  if (!scaled_frame) {
+    LOG(FATAL) << "Failed to allocate scaled frame for decoder";
   }
 
   while (running_.load()) {
@@ -65,23 +73,47 @@ void H264Decoder::worker() {
         LOG(ERROR) << "Error occurred when decoding frame " << index_;
       }
       if (got_frame) {
-        {
-          std::lock_guard<std::mutex> fmt_guard(format_mutex_);
-          output_format_ = c->pix_fmt;
+        if (c->pix_fmt != output_format_) {
+          if(img_c == NULL) {
+            img_c = sws_getContext(c->width, 
+                                   c->height, 
+                                   c->pix_fmt, 
+                                   c->width, 
+                                   c->height, 
+                                   output_format_, 
+                                   SWS_BICUBIC, 
+                                   NULL, 
+                                   NULL, 
+                                   NULL);
+            if(!img_c) {
+              LOG(FATAL) << "Failed to allocate decoder image convert context";
+            }
+          }         
+          sws_scale(img_c, 
+                    frame->data, 
+                    frame->linesize, 
+                    0, 
+                    c->height, 
+                    scaled_frame->data, 
+                    scaled_frame->linesize);     
+          std::lock_guard<std::mutex> guard(send_mutex_);
+          if (send_buffer_.size() >= max_buffer_size_) {
+            send_buffer_.pop_front();
+          }
+          send_buffer_.emplace_front(
+              reinterpret_cast<char*>(scaled_frame->data[0]), 
+              scaled_frame->linesize[0] * c->height);
+        } else {
+          std::lock_guard<std::mutex> guard(send_mutex_);
+          if (send_buffer_.size() >= max_buffer_size_) {
+            send_buffer_.pop_front();
+          }
+          send_buffer_.emplace_front(reinterpret_cast<char*>(frame->data[0]), 
+                                    frame->linesize[0] * c->height);
         }
-        std::lock_guard<std::mutex> guard(send_mutex_);
-        if (send_buffer_.size() >= max_buffer_size_) {
-          send_buffer_.pop_front();
-        }
-        send_buffer_.emplace_front(reinterpret_cast<char*>(frame->data[0]), 
-                                   frame->linesize[0] * c->height);
       }
     }
   }
-}
-
-AVPixelFormat H264Decoder::outputFormat() const {
-  return output_format_;
 }
 
 }

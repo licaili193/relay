@@ -11,6 +11,7 @@ extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavutil/opt.h"
 #include "libavutil/imgutils.h"
+#include "libswscale/swscale.h"
 }
 #include <glog/logging.h>
 
@@ -24,15 +25,12 @@ class H264Decoder : public AsyncPayloadFramework {
   H264Decoder();
 
   virtual void push(size_t payload_size, const char* payload) override;
-  AVPixelFormat outputFormat() const;
 
  protected:
   uint32_t index_ = 0;
 
-  AVPixelFormat output_format_;
+  const AVPixelFormat output_format_ = AV_PIX_FMT_BGR24;
   const AVCodecID codec_id_ = AV_CODEC_ID_H264;
-
-  std::mutex format_mutex_;
 
   virtual void worker() override;
 };

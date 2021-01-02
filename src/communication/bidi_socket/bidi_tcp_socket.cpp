@@ -117,6 +117,14 @@ void BiDirectionalTCPSocket::push(size_t payload_size, const char* payload) {
   send_buffer_.emplace_back(payload, payload_size);
 }
 
+void BiDirectionalTCPSocket::push(std::string payload) {
+  std::lock_guard<std::mutex> guard(send_mutex_);
+  if (send_buffer_.size() >= max_buffer_size_) {
+    send_buffer_.pop_front();
+  }
+  send_buffer_.push_back(std::move(payload));
+}
+
 void BiDirectionalTCPSocket::comsume(
     function<void(std::deque<std::string>&)> fun) {
   std::lock_guard<std::mutex> guard(recv_mutex_);
