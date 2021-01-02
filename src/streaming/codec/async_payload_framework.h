@@ -1,3 +1,6 @@
+#ifndef __ASYNC_PAYLOAD_FRAMEWORK__
+#define __ASYNC_PAYLOAD_FRAMEWORK__
+
 #include <atomic>
 #include <deque>
 #include <functional>
@@ -37,3 +40,5 @@ class AsyncPayloadFramework {
 
 }
 }
+
+#endif

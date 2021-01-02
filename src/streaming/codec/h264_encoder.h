@@ -1,3 +1,6 @@
+#ifndef __H264_ENCODER__
+#define __H264_ENCODER__
+
 #include <atomic>
 #include <deque>
 #include <functional>
@@ -21,8 +24,10 @@ namespace codec {
 
 class H264Encoder : public AsyncPayloadFramework {
  public:
-  H264Encoder(
-      uint16_t width, uint16_t height, float framerate, uint32_t bitrate);
+  H264Encoder(uint16_t width = 480, 
+              uint16_t height = 360, 
+              float framerate = 10, 
+              uint32_t bitrate = 400000);
 
  protected:
   uint16_t width_ = 480;
@@ -43,3 +48,5 @@ class H264Encoder : public AsyncPayloadFramework {
 
 }
 }
+
+#endif

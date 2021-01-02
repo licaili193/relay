@@ -11,4 +11,5 @@ target_include_directories (codecs PUBLIC
 target_link_libraries (codecs PUBLIC 
     ${GLOG_LIBRARIES}
     ${AVCODEC_LIBRARY}
+    ${SWSCALE_LIBRARY}
 )

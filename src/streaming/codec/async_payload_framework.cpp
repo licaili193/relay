@@ -42,5 +42,7 @@ void AsyncPayloadFramework::detach() {
   thread_.detach();
 }
 
+void AsyncPayloadFramework::worker() {}
+
 }
 }

@@ -12,6 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 find_library(AVCODEC_LIBRARY avcodec)
+find_library(SWSCALE_LIBRARY swscale)
 find_package(OpenCV REQUIRED)
 find_package(gflags REQUIRED)
 find_package(Glog REQUIRED)

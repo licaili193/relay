@@ -1,3 +1,6 @@
+#ifndef __H264_DECODER__
+#define __H264_DECODER__
+
 #include <atomic>
 #include <deque>
 #include <functional>
@@ -37,3 +40,5 @@ class H264Decoder : public AsyncPayloadFramework {
 
 }
 }
+
+#endif

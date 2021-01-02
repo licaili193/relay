@@ -81,7 +81,7 @@ void H264Decoder::worker() {
                                    c->width, 
                                    c->height, 
                                    output_format_, 
-                                   SWS_BICUBIC, 
+                                   SWS_BILINEAR, 
                                    NULL, 
                                    NULL, 
                                    NULL);

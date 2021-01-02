@@ -1,3 +1,6 @@
+#ifndef __BIDI_TCP_SOCKET__
+#define __BIDI_TCP_SOCKET__
+
 #include <atomic>
 #include <deque>
 #include <functional>
@@ -58,3 +61,5 @@ class BiDirectionalTCPSocket {
 
 }
 }
+
+#endif
