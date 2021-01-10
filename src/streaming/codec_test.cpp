@@ -13,6 +13,7 @@
 #include "h264_decoder.h"
 #include "h264_encoder.h"
 
+DEFINE_string(video, "", "Video path file (if set, camera won't be used)");
 DEFINE_int32(camera, 0, "Camera number");
 
 std::atomic_bool running;
@@ -34,9 +35,18 @@ int main(int argc, char** argv) {
   running.store(true);
 
   cv::VideoCapture cap;
-  if(!cap.open(FLAGS_camera)) {
-    LOG(FATAL) << "Cannot open camera";
+  if (FLAGS_video != "") {
+    if (!cap.open(FLAGS_video)) {
+      LOG(FATAL) << "Cannot open video file";  
+    }
+  } else {
+    if (!cap.open(FLAGS_camera)) {
+      LOG(FATAL) << "Cannot open camera";
+    }
   }
+
+  cv::namedWindow("camera", cv::WINDOW_AUTOSIZE);
+  cv::namedWindow("decoded image", cv::WINDOW_AUTOSIZE);
 
   relay::codec::H264Encoder encoder;
   relay::codec::H264Encoder decoder;
@@ -53,7 +63,13 @@ int main(int argc, char** argv) {
     
     cv::Mat frame;
     cap >> frame;        
-    cv::imshow("camera", frame); 
+    if (frame.rows > 0 && frame.cols > 0) {
+      cv::imshow("camera", frame);
+      cv::waitKey(1);
+    } else {
+      running.store(false);
+      break;
+    }
 
     cv::resize(frame, frame, cv::Size(640, 360), 0, 0, cv::INTER_LINEAR);
     cv::cvtColor(frame, frame, CV_BGR2YUV_I420);
@@ -63,12 +79,15 @@ int main(int argc, char** argv) {
     cv::Mat decoded_frame;
     decoder.comsume([&](std::deque<std::string>& buffer) {
       if (!buffer.empty()) {
-        decoded_frame = cv::Mat(360, 480, CV_8UC3, const_cast<void*>(
+        decoded_frame = cv::Mat(360, 640, CV_8UC3, const_cast<void*>(
             reinterpret_cast<const void*>(buffer.front().c_str())));
         buffer.pop_front();
       }
     });
-    cv::imshow("decoded image", decoded_frame); 
+    if (decoded_frame.rows > 0 && decoded_frame.cols > 0) {
+      cv::imshow("decoded image", decoded_frame);
+      cv::waitKey(1);
+    } 
 
     std::this_thread::sleep_until(start + std::chrono::milliseconds(100));
   }
