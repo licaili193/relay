@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   cv::namedWindow("decoded image", cv::WINDOW_AUTOSIZE);
 
   relay::codec::H264Encoder encoder;
-  relay::codec::H264Encoder decoder;
+  relay::codec::H264Decoder decoder;
 
   while (running.load()) {
     auto start = std::chrono::system_clock::now();

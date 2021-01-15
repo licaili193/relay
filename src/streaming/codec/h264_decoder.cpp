@@ -19,10 +19,25 @@ void H264Decoder::push(size_t payload_size, const char* payload) {
          AV_INPUT_BUFFER_PADDING_SIZE);
 }
 
+void H264Decoder::push(std::string payload) {
+  auto original_size = payload.size();
+  payload.resize(payload.size() + AV_INPUT_BUFFER_PADDING_SIZE);
+  memset(const_cast<char*>(payload.c_str()) + original_size, 
+         0, 
+         AV_INPUT_BUFFER_PADDING_SIZE);
+  std::lock_guard<std::mutex> guard(send_mutex_);
+  if (send_buffer_.size() >= max_buffer_size_) {
+    send_buffer_.pop_front();
+  }
+  send_buffer_.push_back(std::move(payload));
+}
+
 void H264Decoder::worker() {
   AVFrame* frame;
   AVFrame* scaled_frame;
   
+  avcodec_register_all();
+
   AVCodec* codec = avcodec_find_decoder(codec_id_);
   if (!codec) {
     LOG(FATAL) << "Failed to find decoder";
@@ -34,8 +49,10 @@ void H264Decoder::worker() {
 
   static SwsContext *img_c = NULL; 
   
-  AVPacket pkt;
-  av_init_packet(&pkt);
+  AVPacket* pkt = av_packet_alloc();
+  if (!pkt) {
+    LOG(FATAL) << "Failed to allocate packet for decoder";
+  }
 
   if (avcodec_open2(c, codec, NULL) < 0) {
     LOG(FATAL) << "Failed to open decoder";
@@ -63,28 +80,35 @@ void H264Decoder::worker() {
       }
     }
     if (has_payload) {
-      pkt.size = payload.size() - AV_INPUT_BUFFER_PADDING_SIZE;
-      pkt.data = const_cast<uint8_t*>(
+      pkt->size = payload.size() - AV_INPUT_BUFFER_PADDING_SIZE;
+      pkt->data = const_cast<uint8_t*>(
           reinterpret_cast<const uint8_t*>(payload.c_str()));
       
-      int len, got_frame;
-      len = avcodec_decode_video2(c, frame, &got_frame, &pkt);
-      if (len < 0) {
-        LOG(ERROR) << "Error occurred when decoding frame " << index_;
+      int ret = avcodec_send_packet(c, pkt);
+      if (ret < 0) {
+        LOG(ERROR) << "Error occurred when sending frame " << index_;
       }
-      if (got_frame) {
+      
+      while (ret >= 0) {
+        ret = avcodec_receive_frame(c, frame);
+        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+          break;
+        } else if (ret < 0) {
+          LOG(ERROR) << "Error occurred when decoding frame " << index_;
+        }
+
         if (c->pix_fmt != output_format_) {
           if(img_c == NULL) {
             img_c = sws_getContext(c->width, 
-                                   c->height, 
-                                   c->pix_fmt, 
-                                   c->width, 
-                                   c->height, 
-                                   output_format_, 
-                                   SWS_BILINEAR, 
-                                   NULL, 
-                                   NULL, 
-                                   NULL);
+                                  c->height, 
+                                  c->pix_fmt, 
+                                  c->width, 
+                                  c->height, 
+                                  output_format_, 
+                                  SWS_BILINEAR, 
+                                  NULL, 
+                                  NULL, 
+                                  NULL);
             if(!img_c) {
               LOG(FATAL) << "Failed to allocate decoder image convert context";
             }
@@ -114,6 +138,10 @@ void H264Decoder::worker() {
       }
     }
   }
+
+  avcodec_free_context(&c);
+  av_frame_free(&frame);
+  av_packet_free(&pkt);
 }
 
 }

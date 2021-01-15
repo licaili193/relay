@@ -28,6 +28,7 @@ class H264Decoder : public AsyncPayloadFramework {
   H264Decoder();
 
   virtual void push(size_t payload_size, const char* payload) override;
+  virtual void push(std::string payload) override;
 
  protected:
   uint32_t index_ = 0;
