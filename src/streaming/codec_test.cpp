@@ -77,17 +77,22 @@ int main(int argc, char** argv) {
     encoder.push(640 * 360 * 3 / 2, reinterpret_cast<char*>(frame.data));
 
     cv::Mat decoded_frame;
+    bool got_decoded_frame = false;
     decoder.comsume([&](std::deque<std::string>& buffer) {
       if (!buffer.empty()) {
-        decoded_frame = cv::Mat(360, 640, CV_8UC3, const_cast<void*>(
+        decoded_frame = cv::Mat(360 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
             reinterpret_cast<const void*>(buffer.front().c_str())));
         buffer.pop_front();
+        got_decoded_frame = true;
       }
     });
-    if (decoded_frame.rows > 0 && decoded_frame.cols > 0) {
-      cv::imshow("decoded image", decoded_frame);
-      cv::waitKey(1);
-    } 
+    if (got_decoded_frame) {
+      cv::cvtColor(decoded_frame, decoded_frame, CV_YUV2BGR_I420);
+      if (decoded_frame.rows > 0 && decoded_frame.cols > 0) {
+        cv::imshow("decoded image", decoded_frame);
+        cv::waitKey(1);
+      } 
+    }
 
     std::this_thread::sleep_until(start + std::chrono::milliseconds(100));
   }

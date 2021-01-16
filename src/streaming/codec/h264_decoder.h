@@ -33,7 +33,7 @@ class H264Decoder : public AsyncPayloadFramework {
  protected:
   uint32_t index_ = 0;
 
-  const AVPixelFormat output_format_ = AV_PIX_FMT_BGR24;
+  const AVPixelFormat output_format_ = AV_PIX_FMT_YUV420P;
   const AVCodecID codec_id_ = AV_CODEC_ID_H264;
 
   virtual void worker() override;

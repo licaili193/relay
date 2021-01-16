@@ -4,17 +4,18 @@ namespace relay {
 namespace codec {
 
 H264Decoder::H264Decoder() {
-
+  running_.store(true);
+  thread_ = std::thread(&H264Decoder::worker, this);
 }
 
 void H264Decoder::push(size_t payload_size, const char* payload) {
   std::lock_guard<std::mutex> guard(send_mutex_);
-  if (send_buffer_.size() >= max_buffer_size_) {
-    send_buffer_.pop_front();
+  if (recv_buffer_.size() >= max_buffer_size_) {
+    recv_buffer_.pop_front();
   }
-  send_buffer_.emplace_back(
+  recv_buffer_.emplace_back(
       payload, payload_size + AV_INPUT_BUFFER_PADDING_SIZE);
-  memset(const_cast<char*>(send_buffer_.back().c_str()) + payload_size, 
+  memset(const_cast<char*>(recv_buffer_.back().c_str()) + payload_size, 
          0, 
          AV_INPUT_BUFFER_PADDING_SIZE);
 }
@@ -26,15 +27,14 @@ void H264Decoder::push(std::string payload) {
          0, 
          AV_INPUT_BUFFER_PADDING_SIZE);
   std::lock_guard<std::mutex> guard(send_mutex_);
-  if (send_buffer_.size() >= max_buffer_size_) {
-    send_buffer_.pop_front();
+  if (recv_buffer_.size() >= max_buffer_size_) {
+    recv_buffer_.pop_front();
   }
-  send_buffer_.push_back(std::move(payload));
+  recv_buffer_.push_back(std::move(payload));
 }
 
 void H264Decoder::worker() {
   AVFrame* frame;
-  AVFrame* scaled_frame;
   
   avcodec_register_all();
 
@@ -61,11 +61,6 @@ void H264Decoder::worker() {
   frame = av_frame_alloc();
   if (!frame) {
     LOG(FATAL) << "Failed to allocate image frame for decoder";
-  }
-
-  scaled_frame = av_frame_alloc();
-  if (!scaled_frame) {
-    LOG(FATAL) << "Failed to allocate scaled frame for decoder";
   }
 
   while (running_.load()) {
@@ -95,46 +90,23 @@ void H264Decoder::worker() {
           break;
         } else if (ret < 0) {
           LOG(ERROR) << "Error occurred when decoding frame " << index_;
+          break;
         }
-
-        if (c->pix_fmt != output_format_) {
-          if(img_c == NULL) {
-            img_c = sws_getContext(c->width, 
-                                  c->height, 
-                                  c->pix_fmt, 
-                                  c->width, 
-                                  c->height, 
-                                  output_format_, 
-                                  SWS_BILINEAR, 
-                                  NULL, 
-                                  NULL, 
-                                  NULL);
-            if(!img_c) {
-              LOG(FATAL) << "Failed to allocate decoder image convert context";
-            }
-          }         
-          sws_scale(img_c, 
-                    frame->data, 
-                    frame->linesize, 
-                    0, 
-                    c->height, 
-                    scaled_frame->data, 
-                    scaled_frame->linesize);     
-          std::lock_guard<std::mutex> guard(send_mutex_);
-          if (send_buffer_.size() >= max_buffer_size_) {
-            send_buffer_.pop_front();
-          }
-          send_buffer_.emplace_front(
-              reinterpret_cast<char*>(scaled_frame->data[0]), 
-              scaled_frame->linesize[0] * c->height);
-        } else {
-          std::lock_guard<std::mutex> guard(send_mutex_);
-          if (send_buffer_.size() >= max_buffer_size_) {
-            send_buffer_.pop_front();
-          }
-          send_buffer_.emplace_front(reinterpret_cast<char*>(frame->data[0]), 
-                                    frame->linesize[0] * c->height);
+        std::string temp(c->width * c->height * 3 /2, 0);
+        memcpy(const_cast<char*>(temp.c_str()), 
+               frame->data[0], 
+               c->width * c->height);
+        memcpy(const_cast<char*>(temp.c_str()) + c->width * c->height, 
+               frame->data[1], 
+               c->width * c->height / 4);
+        memcpy(const_cast<char*>(temp.c_str()) + c->width * c->height * 5 / 4, 
+               frame->data[2], 
+               c->width * c->height / 4);
+        std::lock_guard<std::mutex> guard(send_mutex_);
+        if (send_buffer_.size() >= max_buffer_size_) {
+          send_buffer_.pop_front();
         }
+        send_buffer_.push_back(std::move(temp));
       }
     }
   }
