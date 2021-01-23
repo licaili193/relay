@@ -12,3 +12,29 @@ target_link_libraries (codec_test PUBLIC
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
 )
+
+add_executable (sender 
+    sender.cpp
+)
+
+target_link_libraries (sender PUBLIC 
+    codecs
+    practical_socket
+    bidi_socket
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
+add_executable (receiver 
+    receiver.cpp
+)
+
+target_link_libraries (receiver PUBLIC 
+    codecs
+    practical_socket
+    bidi_socket
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
