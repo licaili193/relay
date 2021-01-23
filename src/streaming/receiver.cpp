@@ -65,7 +65,8 @@ int main(int argc, char** argv) {
           if (!buffer.empty()) {
             decoded_frame = cv::Mat(
                 360 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
-                    reinterpret_cast<const void*>(buffer.front().c_str())));
+                    reinterpret_cast<const void*>(buffer.front().c_str()))).
+                        clone();
             buffer.pop_front();
             got_decoded_frame = true;
           }

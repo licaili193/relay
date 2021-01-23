@@ -74,6 +74,7 @@ int main(int argc, char** argv) {
           cv::waitKey(1);
         } else {
           running.store(false);
+          bidi_sock.stop();
           break;
         }
 
