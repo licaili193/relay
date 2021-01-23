@@ -36,47 +36,45 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
   try {
     while (running_.load()) {
       // Receiving
-      while (true) {
-        char header_buffer[FrameHeader::header_size];
-        int h_recv_sz_accum = 0;
-        int h_recv_sz = 0;
-        bool got_header = false;
+      char header_buffer[FrameHeader::header_size];
+      int h_recv_sz = 0;
 
-        while (
-            h_recv_sz_accum < FrameHeader::header_size && 
-            (h_recv_sz = 
-                socket->recv(header_buffer + h_recv_sz_accum, 
-                    FrameHeader::header_size - h_recv_sz_accum)) > 0) {
-          h_recv_sz_accum += h_recv_sz;
-          got_header = true;
-        }
-        if (got_header) {
-          FrameHeader header = FrameHeader::parseFrameHeader(header_buffer);
-          if (header.command == COMMAND_DISCONNECT) {
-            running_.store(false);
+      h_recv_sz = socket->recv(header_buffer, FrameHeader::header_size);
+      if (h_recv_sz == FrameHeader::header_size) {
+        constexpr size_t buffer_size = 87380;
+        char buffer[buffer_size];
+        int recv_sz_accum = 0;
+        int recv_sz = 0;
+
+        FrameHeader header = FrameHeader::parseFrameHeader(header_buffer);
+        if (header.length > buffer_size) {
+          LOG(ERROR) << "Bad header detected once. Retriving...";
+          while (running_.load()) {
+            recv_sz = socket->recv(buffer, buffer_size);
+            if (recv_sz ==  FrameHeader::header_size) {
+              header = FrameHeader::parseFrameHeader(buffer);
+              break;
+            }
           }
+        }
 
-          constexpr size_t buffer_size = 87380;
-          char buffer[buffer_size];
-          int recv_sz_accum = 0;
-          int recv_sz = 0;
-
-          while (
-            recv_sz_accum < header.length && 
-            (recv_sz = 
-                socket->recv(buffer + recv_sz_accum, 
-                    header.length - recv_sz_accum)) > 0) {
+        if (header.command == COMMAND_DISCONNECT) {
+          running_.store(false);
+        }
+        
+        while (recv_sz_accum < header.length) {
+          recv_sz = socket->recv(buffer + recv_sz_accum, 
+              header.length - recv_sz_accum);
+          if (recv_sz > 0) {
             recv_sz_accum += recv_sz;
           }
-
-          std::lock_guard<std::mutex> guard(recv_mutex_);
-          if (recv_buffer_.size() >= max_buffer_size_) {
-            recv_buffer_.pop_front();
-          }
-          recv_buffer_.emplace_back(buffer, recv_sz_accum);
-        } else {
-          break;
         }
+
+        std::lock_guard<std::mutex> guard(recv_mutex_);
+        if (recv_buffer_.size() >= max_buffer_size_) {
+          recv_buffer_.pop_front();
+        }
+        recv_buffer_.emplace_back(buffer, recv_sz_accum);
       }
 
       {
