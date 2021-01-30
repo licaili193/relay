@@ -31,3 +31,12 @@ sudo apt-get install libgoogle-glog-dev
 ```
 sudo apt-get install libgflags-dev
 ```
+
+* websocketpp
+Clone from here: https://github.com/zaphoyd/websocketpp
+```
+mkdir build
+cd build
+cmake ..
+sudo make install
+```

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.19.2)
+cmake_minimum_required (VERSION 3.10.2)
 project (Relay)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -16,5 +16,8 @@ find_library(SWSCALE_LIBRARY swscale)
 find_package(OpenCV REQUIRED)
 find_package(gflags REQUIRED)
 find_package(Glog REQUIRED)
+find_package(websocketpp REQUIRED)
+
+add_definitions(-DBOOST_ERROR_CODE_HEADER_ONLY)
 
 add_subdirectory (src)
