@@ -195,6 +195,21 @@ bool Socket::getBlocking() {
   }
 }
 
+void Socket::check() throw(SocketException) {
+  int error = 0;
+  socklen_t len = sizeof(error);
+  int ret = getsockopt(sockDesc, SOL_SOCKET, SO_ERROR, &error, &len);
+  
+  if (ret != 0) {
+    std::string err_msg = "getsockopt() failed: ";
+    err_msg += strerror(ret);
+    throw SocketException(err_msg);
+  }
+  if (error != 0) {
+    throw SocketException("getsockopt() failed");
+  }
+}
+
 // CommunicatingSocket Code
 
 CommunicatingSocket::CommunicatingSocket(int type, int protocol)  

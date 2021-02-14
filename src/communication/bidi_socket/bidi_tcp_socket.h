@@ -2,6 +2,7 @@
 #define __BIDI_TCP_SOCKET__
 
 #include <atomic>
+#include <chrono>
 #include <deque>
 #include <functional>
 #include <mutex>
@@ -13,9 +14,13 @@
 
 #define COMMAND_NULL 0
 #define COMMAND_DISCONNECT 1
+#define COMMAND_PING 2
 
 #define FIN_INDEX_KEY 12245
 #define FIN_SIZE_KEY 5132466
+
+#define PING_INDEX_KEY 23414
+#define PING_SIZE_KEY 102304
 
 namespace relay {
 namespace communication {
@@ -33,7 +38,8 @@ struct FrameHeader {
 
 class BiDirectionalTCPSocket {
  public:
-  BiDirectionalTCPSocket(TCPSocket* sock, size_t max_buffer_size = 10);
+  BiDirectionalTCPSocket(
+      TCPSocket* sock, size_t max_buffer_size = 10, double ping_period_sec = 1);
 
   void stop();
   void push(size_t payload_size, const char* payload);
@@ -56,7 +62,13 @@ class BiDirectionalTCPSocket {
   std::deque<std::string> recv_buffer_;
   std::deque<std::string> send_buffer_;
 
+  std::chrono::duration<double> ping_period_;
+  std::chrono::time_point<std::chrono::system_clock> ping_time_;
+
   void worker(TCPSocket* sock);
+  virtual bool isCorrectHeader(char* buffer, int size, FrameHeader& header);
+
+  static constexpr size_t buffer_size = 87380;
 };
 
 }

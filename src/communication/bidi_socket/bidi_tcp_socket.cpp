@@ -23,11 +23,25 @@ FrameHeader FrameHeader::parseFrameHeader(const char buffer[9]) {
 const size_t FrameHeader::header_size = 9;
 
 BiDirectionalTCPSocket::BiDirectionalTCPSocket(
-    TCPSocket* sock, size_t max_buffer_size) {
+    TCPSocket* sock, size_t max_buffer_size, double ping_period_sec) 
+    : ping_period_(ping_period_sec) {
   max_buffer_size_ = max_buffer_size;
+  ping_time_ = std::chrono::system_clock::now();
 
   running_.store(true);
   thread_ = std::thread(&BiDirectionalTCPSocket::worker, this, sock);
+}
+
+bool BiDirectionalTCPSocket::isCorrectHeader(
+    char* buffer, int size, FrameHeader& header) {
+  if (size == FrameHeader::header_size) {
+    header = FrameHeader::parseFrameHeader(buffer);
+    if (header.length <= buffer_size) {
+      return true;
+    }
+    LOG_EVERY_N(ERROR, 100) << "Bad header detected...";
+  }
+  return false;
 }
 
 void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
@@ -35,31 +49,23 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
   socket->setBlocking(false);
   try {
     while (running_.load()) {
+      socket->check();
+
       // Receiving
-      char header_buffer[FrameHeader::header_size];
-      int h_recv_sz = 0;
+      char buffer[buffer_size];
+      int recv_sz = 0;
+      FrameHeader header;
 
-      h_recv_sz = socket->recv(header_buffer, FrameHeader::header_size);
-      if (h_recv_sz == FrameHeader::header_size) {
-        constexpr size_t buffer_size = 87380;
-        char buffer[buffer_size];
+      recv_sz = socket->recv(buffer, buffer_size);
+      if (isCorrectHeader(buffer, recv_sz, header)) {
         int recv_sz_accum = 0;
-        int recv_sz = 0;
-
-        FrameHeader header = FrameHeader::parseFrameHeader(header_buffer);
-        if (header.length > buffer_size) {
-          LOG(ERROR) << "Bad header detected once. Retriving...";
-          while (running_.load()) {
-            recv_sz = socket->recv(buffer, buffer_size);
-            if (recv_sz ==  FrameHeader::header_size) {
-              header = FrameHeader::parseFrameHeader(buffer);
-              break;
-            }
-          }
-        }
 
         if (header.command == COMMAND_DISCONNECT) {
           running_.store(false);
+        }
+
+        if (header.command == COMMAND_PING) {
+          continue;
         }
         
         while (recv_sz_accum < header.length) {
@@ -90,6 +96,16 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
           send_buffer_.pop_front();
           index_++;
         }
+      }
+
+      auto cur_time = std::chrono::system_clock::now();
+      if (cur_time - ping_time_ >= ping_period_) {
+        FrameHeader header = 
+            {PING_INDEX_KEY, PING_SIZE_KEY, COMMAND_PING};
+        char header_buffer[FrameHeader::header_size];
+        header.makeFrameHeader(header_buffer);
+        socket->send(header_buffer, FrameHeader::header_size);
+        ping_time_ = std::move(cur_time);
       }
     }
     LOG(WARNING) << "Socket sending fin";

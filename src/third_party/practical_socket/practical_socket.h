@@ -109,6 +109,12 @@ public:
   bool getBlocking();
 
   /**
+   *   Check if the socket is still alive.
+   *   @exception SocketException thrown if socket is broken
+   */
+  void check() throw(SocketException);
+
+  /**
    *   If WinSock, unload the WinSock DLLs; otherwise do nothing.  We ignore
    *   this in our sample client code but include it in the library for
    *   completeness.  If you are running on Windows and you are concerned
