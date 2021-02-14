@@ -40,3 +40,8 @@ cd build
 cmake ..
 sudo make install
 ```
+
+## Relay Server
+```
+socat TCP-LISTEN:7000 TCP-LISTEN:7001
+```
