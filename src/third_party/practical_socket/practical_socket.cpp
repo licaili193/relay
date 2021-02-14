@@ -206,7 +206,9 @@ void Socket::check() throw(SocketException) {
     throw SocketException(err_msg);
   }
   if (error != 0) {
-    throw SocketException("getsockopt() failed");
+    std::string err_msg = "getsockopt() failed: ";
+    err_msg += strerror(error);
+    throw SocketException(err_msg);
   }
 }
 
