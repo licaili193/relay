@@ -37,9 +37,23 @@ bool BiDirectionalTCPSocket::isCorrectHeader(
   if (size == FrameHeader::header_size) {
     header = FrameHeader::parseFrameHeader(buffer);
     if (header.length <= buffer_size) {
+      if ((header.command == COMMAND_DISCONNECT) && 
+          (header.id == FIN_INDEX_KEY) &&
+          (header.length == FIN_SIZE_KEY)) {
+        running_.store(false);
+        return false;
+      }
+      if ((header.command == COMMAND_PING) && 
+          (header.id == PING_INDEX_KEY) &&
+          (header.length == PING_SIZE_KEY)) {
+        return false;
+      }
       return true;
     }
-    LOG_EVERY_N(ERROR, 100) << "Bad header detected...";
+    LOG(ERROR) << "Bad header detected (buffer size check failed)...";
+  }
+  if (size > 0) {
+    LOG(ERROR) << "Bad header detected (header size check failed)...";
   }
   return false;
 }
@@ -56,17 +70,9 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
       int recv_sz = 0;
       FrameHeader header;
 
-      recv_sz = socket->recv(buffer, buffer_size);
+      recv_sz = socket->recv(buffer, FrameHeader::header_size);
       if (isCorrectHeader(buffer, recv_sz, header)) {
         int recv_sz_accum = 0;
-
-        if (header.command == COMMAND_DISCONNECT) {
-          running_.store(false);
-        }
-
-        if (header.command == COMMAND_PING) {
-          continue;
-        }
         
         while (recv_sz_accum < header.length) {
           recv_sz = socket->recv(buffer + recv_sz_accum, 
@@ -93,6 +99,7 @@ void BiDirectionalTCPSocket::worker(TCPSocket* sock) {
           socket->send(header_buffer, FrameHeader::header_size);
           socket->send(payload.c_str(), payload.size());
 
+          ping_time_ = std::chrono::system_clock::now();
           send_buffer_.pop_front();
           index_++;
         }

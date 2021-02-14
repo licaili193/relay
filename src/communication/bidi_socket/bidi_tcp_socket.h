@@ -17,10 +17,10 @@
 #define COMMAND_PING 2
 
 #define FIN_INDEX_KEY 12245
-#define FIN_SIZE_KEY 5132466
+#define FIN_SIZE_KEY 87379
 
 #define PING_INDEX_KEY 23414
-#define PING_SIZE_KEY 102304
+#define PING_SIZE_KEY 87370
 
 namespace relay {
 namespace communication {
