@@ -27,13 +27,3 @@ target_link_libraries (bidi_tcp_client_test PUBLIC
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
 )
-
-add_executable (websocket_relay 
-    websocket_relay.cpp
-)
-
-target_link_libraries (websocket_relay PUBLIC 
-    ${websocketpp_LIBRARIES}
-    ${GLOG_LIBRARIES}
-    ${GFLAGS_LIBRARIES}
-)

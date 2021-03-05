@@ -38,3 +38,17 @@ target_link_libraries (receiver PUBLIC
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
 )
+
+add_executable (websocket_relay 
+    websocket_relay.cpp
+)
+
+target_link_libraries (websocket_relay PUBLIC 
+    codecs
+    practical_socket
+    bidi_socket
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+    ${websocketpp_LIBRARIES}
+)

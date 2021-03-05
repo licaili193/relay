@@ -2,6 +2,7 @@ add_library (codecs SHARED
   async_payload_framework.cpp
   h264_decoder.cpp
   h264_encoder.cpp
+  jsmpeg_encoder.cpp
 )
 
 target_include_directories (codecs PUBLIC 
