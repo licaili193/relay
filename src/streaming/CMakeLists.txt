@@ -39,6 +39,19 @@ target_link_libraries (receiver PUBLIC
     ${GFLAGS_LIBRARIES}
 )
 
+add_executable (jsmpeg_send 
+    jsmpeg_send.cpp
+)
+
+target_link_libraries (jsmpeg_send PUBLIC 
+    codecs
+    practical_socket
+    bidi_socket
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
 add_executable (websocket_relay 
     websocket_relay.cpp
 )

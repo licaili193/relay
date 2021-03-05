@@ -82,7 +82,7 @@ void JsmpegEncoder::worker() {
       memcpy(frame->data[2], 
              payload.c_str() + width_ * height_ * 5 / 4, 
              width_ * height_ / 4);      
-      frame->pts = index_;
+      frame->pts++;
       ret = avcodec_send_frame(c, frame);
       if (ret < 0) {
         LOG(ERROR) << "Error occurred when sending frame " << index_;

@@ -55,6 +55,12 @@
         "numeric": "cpp",
         "random": "cpp",
         "regex": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "csignal": "cpp",
+        "codecvt": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "future": "cpp",
+        "typeindex": "cpp"
     }
 }
