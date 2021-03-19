@@ -17,6 +17,10 @@ find_package(OpenCV REQUIRED)
 find_package(gflags REQUIRED)
 find_package(Glog REQUIRED)
 find_package(websocketpp REQUIRED)
+find_package(CUDA REQUIRED)
+
+set (CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
+enable_language(CUDA)
 
 add_definitions(-DBOOST_ERROR_CODE_HEADER_ONLY)
 

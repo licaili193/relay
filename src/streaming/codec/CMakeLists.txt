@@ -1,3 +1,6 @@
+add_subdirectory (nvencoder)
+add_subdirectory (nvdecoder)
+
 add_library (codecs SHARED 
   async_payload_framework.cpp
   h264_decoder.cpp
