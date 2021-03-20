@@ -39,11 +39,11 @@ target_link_libraries (receiver PUBLIC
     ${GFLAGS_LIBRARIES}
 )
 
-add_executable (jsmpeg_send 
-    jsmpeg_send.cpp
+add_executable (jsmpeg_sender 
+    jsmpeg_sender.cpp
 )
 
-target_link_libraries (jsmpeg_send PUBLIC 
+target_link_libraries (jsmpeg_sender PUBLIC 
     codecs
     practical_socket
     bidi_socket

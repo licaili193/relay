@@ -17,3 +17,19 @@ target_link_libraries (codecs PUBLIC
     ${AVCODEC_LIBRARY}
     ${SWSCALE_LIBRARY}
 )
+
+cuda_add_library (nv_codecs SHARED 
+  async_payload_framework.cpp
+  nv_hevc_encoder.cpp
+  nv_hevc_decoder.cpp
+)
+
+target_include_directories (nv_codecs PUBLIC 
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries (nv_codecs ${CUDA_LINK_LIBRARIES_KEYWORD} 
+    ${GLOG_LIBRARIES}
+    nvencoder
+    nvdecoder
+)
