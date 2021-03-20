@@ -8,6 +8,7 @@
 #include <string>
 #include <thread>
 
+#include <cuda.h>
 #include <string.h>
 #include <glog/logging.h>
 

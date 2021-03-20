@@ -65,3 +65,33 @@ target_link_libraries (websocket_relay PUBLIC
     ${GFLAGS_LIBRARIES}
     ${websocketpp_LIBRARIES}
 )
+
+cuda_add_executable (nv_hevc_sender 
+    nv_hevc_sender.cpp
+)
+
+target_link_libraries (nv_hevc_sender ${CUDA_LINK_LIBRARIES_KEYWORD} 
+    cuda
+    nv_codecs
+    practical_socket
+    bidi_socket
+    ${CUDA_LIBRARY}
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
+cuda_add_executable (nv_hevc_receiver 
+    nv_hevc_receiver.cpp
+)
+
+target_link_libraries (nv_hevc_receiver ${CUDA_LINK_LIBRARIES_KEYWORD} 
+    cuda
+    nv_codecs
+    practical_socket
+    bidi_socket
+    ${CUDA_LIBRARY}
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)

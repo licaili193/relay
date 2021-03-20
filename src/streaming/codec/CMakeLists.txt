@@ -1,5 +1,4 @@
-add_subdirectory (nvencoder)
-add_subdirectory (nvdecoder)
+add_subdirectory (nvcodec)
 
 add_library (codecs SHARED 
   async_payload_framework.cpp
@@ -29,7 +28,8 @@ target_include_directories (nv_codecs PUBLIC
 )
 
 target_link_libraries (nv_codecs ${CUDA_LINK_LIBRARIES_KEYWORD} 
-    ${GLOG_LIBRARIES}
-    nvencoder
-    nvdecoder
+  ${CUDA_LIBRARY}    
+  ${GLOG_LIBRARIES}
+  nvencoder
+  nvdecoder
 )
