@@ -13,8 +13,9 @@ NvHEVCDecoder::NvHEVCDecoder(CUcontext cu_context) {
 }
 
 void NvHEVCDecoder::worker() {
-  NvDecoder dec(cu_context_, false, cudaVideoCodec_HEVC, false, false);
+  NvDecoder dec(cu_context_, false, cudaVideoCodec_HEVC, NULL, true);
 
+  int n = 0;
   while (running_.load()) {
     std::string payload;
     bool has_payload = false;
@@ -28,12 +29,20 @@ void NvHEVCDecoder::worker() {
     }
     if (has_payload) {
       int nVideoBytes = 0, nFrameReturned = 0;
-      nFrameReturned = dec.Decode(
-          reinterpret_cast<const uint8_t*>(payload.c_str()), payload.size());
+      uint8_t **ppFrame;
+      int64_t *pTimestamp;
+      dec.Decode(
+          reinterpret_cast<const uint8_t*>(payload.c_str()), 
+          payload.size(), 
+          &ppFrame, 
+          &nFrameReturned, 
+          CUVID_PKT_ENDOFPICTURE, 
+          &pTimestamp, 
+          n++);
       
       for (int i = 0; i < nFrameReturned; i++) {
-        uint8_t *pFrame = dec.GetFrame();
-        int frame_size = dec.GetWidth()* dec.GetHeight() * 3 /2;
+        uint8_t *pFrame = ppFrame[i];
+        int frame_size = dec.GetFrameSize();
         std::string temp(frame_size, 0);
         memcpy(const_cast<char*>(temp.c_str()), 
                pFrame, 
