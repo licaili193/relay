@@ -8,13 +8,28 @@ Relay Server
 
 ### Dependencies for the stream
 
+* package-config
+```
+sudo apt-get install package-config
+```
+
 * libavcodec-dev
 ```
 sudo apt install -y libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev
 ```
 
+* boost
+```
+sudo apt-get install libboost-all-dev
+```
+
+* gtk2.0
+```
+sudo apt-get install libgtk2.0-dev
+```
+
 * opencv
-In OpenCV folder
+Clone from here: https://github.com/opencv/opencv
 ```
 mkdir build
 cd build
