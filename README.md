@@ -56,6 +56,22 @@ cmake ..
 sudo make install
 ```
 
+* OpenGL
+```
+sudo apt-get install libglfw3 libglfw3-dev
+sudo apt-get install libglew-dev
+sudo apt-get install mesa-common-dev
+```
+
+* NanoGUI
+Clone from here: https://github.com/wjakob/nanogui
+```
+mkdir build
+cd build
+cmake .. -DNANOGUI_BUILD_EXAMPLE=OFF -DNANOGUI_BUILD_PYTHON=OFF
+sudo make install
+```
+
 ## Relay Server
 ```
 socat TCP-LISTEN:7000 TCP-LISTEN:7001
