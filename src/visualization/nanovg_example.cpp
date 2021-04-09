@@ -1,6 +1,10 @@
 #include "nanogui_includes.h"
-#include <iostream>
 #include <string>
+
+#include <glog/logging.h>
+#include <gflags/gflags.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/types_c.h>
 
 // Includes for the GLTexture class.
 #include <cstdint>
@@ -8,31 +12,8 @@
 #include <utility>
 
 #if defined(__GNUC__)
-#  pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
-#if defined(_WIN32)
-#  pragma warning(push)
-#  pragma warning(disable: 4457 4456 4005 4312)
-#endif
-
-#if defined(_WIN32)
-#  pragma warning(pop)
-#endif
-#if defined(_WIN32)
-#  if defined(APIENTRY)
-#    undef APIENTRY
-#  endif
-#  include <windows.h>
-#endif
-
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::string;
-using std::vector;
-using std::pair;
-using std::to_string;
-
 
 class MyGLCanvas : public nanogui::GLCanvas {
  public:
@@ -156,20 +137,19 @@ class MyGLCanvas : public nanogui::GLCanvas {
 class ExampleApplication : public nanogui::Screen {
  public:
   ExampleApplication() : 
-      nanogui::Screen(Eigen::Vector2i(800, 600), "NanoGUI Test", false) {
+      nanogui::Screen(Eigen::Vector2i(800, 600), "NanoGUI Test", true) {
     using namespace nanogui;
 
-    Window *window = new Window(this, "GLCanvas Demo");
-    window->setPosition(Vector2i(15, 15));
-    window->setLayout(new GroupLayout());
+    setLayout(new BoxLayout(
+        Orientation::Vertical, Alignment::Middle, 0, 5));
 
-    mCanvas = new MyGLCanvas(window);
+    mCanvas = new MyGLCanvas(this);
     mCanvas->setBackgroundColor({100, 100, 100, 255});
     mCanvas->setSize({400, 400});
 
-    Widget *tools = new Widget(window);
-    tools->setLayout(new BoxLayout(Orientation::Horizontal,
-                                       Alignment::Middle, 0, 5));
+    tools = new Widget(this);
+    tools->setLayout(new BoxLayout(
+        Orientation::Horizontal, Alignment::Middle, 0, 5));
 
     Button *b0 = new Button(tools, "Random Color");
     b0->setCallback([this]() { 
@@ -201,14 +181,26 @@ class ExampleApplication : public nanogui::Screen {
 
   virtual void draw(NVGcontext *ctx) {
     /* Draw the user interface */
+    constexpr int window_margin = 10;
+    const auto& tool_size = tools->layout()->preferredSize(ctx, tools);
+    const auto& window_size = size();
+    mCanvas->setSize(
+        {window_size.x(), window_size.y() - tool_size.y() - window_margin});
+    performLayout();
     Screen::draw(ctx);
   }
 
  private:
   MyGLCanvas *mCanvas;
+  Widget *tools;
 };
 
-int main(int /* argc */, char ** /* argv */) {
+DEFINE_string(picture, "", "Sample picture path file");
+
+int main(int argc, char** argv) {
+  google::InitGoogleLogging(argv[0]);
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
   try {
     nanogui::init();
 
@@ -224,11 +216,7 @@ int main(int /* argc */, char ** /* argv */) {
   } catch (const std::runtime_error &e) {
     std::string error_msg = 
         std::string("Caught a fatal error: ") + std::string(e.what());
-    #if defined(_WIN32)
-      MessageBoxA(nullptr, error_msg.c_str(), NULL, MB_ICONERROR | MB_OK);
-    #else
-      std::cerr << error_msg << endl;
-    #endif
+    LOG(ERROR) << error_msg;
     return -1;
   }
 

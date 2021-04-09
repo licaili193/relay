@@ -9,4 +9,7 @@ target_link_libraries (nanovg_example PUBLIC
     nanovg
     ${NANOGUI_LIBRARY}
     ${OPENGL_LIBRARIES}
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
 )
