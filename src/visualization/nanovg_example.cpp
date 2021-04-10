@@ -15,12 +15,14 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 
-class MyGLCanvas : public nanogui::GLCanvas {
+class CameraGLCanvas : public nanogui::GLCanvas {
  public:
-  MyGLCanvas(Widget *parent) : 
+  CameraGLCanvas(Widget *parent) : 
       nanogui::GLCanvas(parent), 
       mRotation(nanogui::Vector3f(0.25f, 0.5f, 0.33f)) {
     using namespace nanogui;
+
+    camera_size = {600, 800};
 
     const char* vertex_shader = 
         R"(
@@ -99,7 +101,7 @@ class MyGLCanvas : public nanogui::GLCanvas {
     mShader.uploadAttrib("color", colors);
   }
 
-  ~MyGLCanvas() {
+  ~CameraGLCanvas() {
     mShader.free();
   }
 
@@ -128,9 +130,19 @@ class MyGLCanvas : public nanogui::GLCanvas {
     glDisable(GL_DEPTH_TEST);
   }
 
+  void setCameraSize(Eigen::Vector2i size) {
+    camera_size = size;
+  }
+
+  const Eigen::Vector2i& cameraSize() const {
+    return camera_size;
+  }
+
  private:
   nanogui::GLShader mShader;
   Eigen::Vector3f mRotation;
+
+  Eigen::Vector2i camera_size;
 };
 
 
@@ -140,24 +152,21 @@ class ExampleApplication : public nanogui::Screen {
       nanogui::Screen(Eigen::Vector2i(800, 600), "NanoGUI Test", true) {
     using namespace nanogui;
 
-    setLayout(new BoxLayout(
-        Orientation::Vertical, Alignment::Middle, 0, 5));
-
-    mCanvas = new MyGLCanvas(this);
+    mCanvas = new CameraGLCanvas(this);
     mCanvas->setBackgroundColor({100, 100, 100, 255});
-    mCanvas->setSize({400, 400});
+    mCanvas->setCameraSize({400, 400});
 
-    tools = new Widget(this);
-    tools->setLayout(new BoxLayout(
+    mTools = new Widget(this);
+    mTools->setLayout(new BoxLayout(
         Orientation::Horizontal, Alignment::Middle, 0, 5));
 
-    Button *b0 = new Button(tools, "Random Color");
+    Button *b0 = new Button(mTools, "Random Color");
     b0->setCallback([this]() { 
       mCanvas->setBackgroundColor(
           Vector4i(rand() % 256, rand() % 256, rand() % 256, 255)); 
     });
 
-    Button *b1 = new Button(tools, "Random Rotation");
+    Button *b1 = new Button(mTools, "Random Rotation");
     b1->setCallback([this]() { 
       mCanvas->setRotation(
           nanogui::Vector3f((rand() % 100) / 100.0f, 
@@ -181,18 +190,42 @@ class ExampleApplication : public nanogui::Screen {
 
   virtual void draw(NVGcontext *ctx) {
     /* Draw the user interface */
-    constexpr int window_margin = 10;
-    const auto& tool_size = tools->layout()->preferredSize(ctx, tools);
+    float camera_aspect_ratio = 
+        static_cast<float>(mCanvas->cameraSize().x()) / 
+        static_cast<float>(mCanvas->cameraSize().y());
+
+    constexpr int window_margin = 5;
+    const auto& tool_size = mTools->preferredSize(ctx);
     const auto& window_size = size();
-    mCanvas->setSize(
-        {window_size.x(), window_size.y() - tool_size.y() - window_margin});
+
+    int canvas_height = window_size.y() - tool_size.y() - 2 * window_margin;
+    int canvas_width = window_size.x();
+
+    float current_aspect_ratio = 
+        static_cast<float>(canvas_width) / static_cast<float>(canvas_height);
+
+    if (camera_aspect_ratio < current_aspect_ratio) {
+      mCanvas->setSize(
+          {camera_aspect_ratio * canvas_height, canvas_height});
+      mCanvas->setPosition(
+          {(canvas_width - camera_aspect_ratio * canvas_height) / 2, 0});
+    } else {
+      mCanvas->setSize(
+          {canvas_width, camera_aspect_ratio * canvas_width});
+      mCanvas->setPosition(
+          {0, (canvas_height - camera_aspect_ratio * canvas_width) / 2});
+    }
+
+    mTools->setPosition(
+        {(window_size.x() - tool_size.x()) / 2, canvas_height + window_margin});
+    
     performLayout();
     Screen::draw(ctx);
   }
 
  private:
-  MyGLCanvas *mCanvas;
-  Widget *tools;
+  CameraGLCanvas *mCanvas;
+  Widget *mTools;
 };
 
 DEFINE_string(picture, "", "Sample picture path file");
