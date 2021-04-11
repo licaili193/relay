@@ -15,35 +15,53 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 
+DEFINE_string(picture, "", "Sample picture path file");
+
 class CameraGLCanvas : public nanogui::GLCanvas {
  public:
-  CameraGLCanvas(Widget *parent) : 
-      nanogui::GLCanvas(parent), 
-      mRotation(nanogui::Vector3f(0.25f, 0.5f, 0.33f)) {
+  CameraGLCanvas(Widget *parent) : nanogui::GLCanvas(parent) {
     using namespace nanogui;
 
     camera_size = {600, 800};
 
     const char* vertex_shader = 
         R"(
-          #version 330
-          uniform mat4 modelViewProj;
-          in vec3 position;
-          in vec3 color;
-          out vec4 frag_color;
-          void main() {
-            frag_color = 3.0 * modelViewProj * vec4(color, 1.0);
-            gl_Position = modelViewProj * vec4(position, 1.0);
+          #version 410
+
+          in vec4 vertexIn;
+          in vec2 textureIn;
+          out vec2 textureOut;
+
+          void main(void) {
+            gl_Position = vertexIn;
+            textureOut = textureIn;
           }
         )";
 
     const char* fragment_shader = 
         R"(
-          #version 330
-          out vec4 color;
-          in vec4 frag_color;
-          void main() {
-            color = frag_color;
+          #version 410
+
+          in vec2 textureOut;
+          out vec4 fragColor;
+
+          uniform sampler2D tex_y;
+          uniform sampler2D tex_u;
+          uniform sampler2D tex_v;
+
+          void main(void) {
+            vec3 yuv;
+            vec3 rgb;
+                
+            yuv.x = texture(tex_y, textureOut).r;
+            yuv.y = texture(tex_u, textureOut).r - 0.5;
+            yuv.z = texture(tex_v, textureOut).r - 0.5;
+                
+            rgb = mat3( 1,       1,         1,
+                        0,       -0.21482,  2.12798,
+                        1.28033, -0.38059,  0) * yuv;
+                
+            fragColor = vec4(rgb, 1);
           }
         )";
 
@@ -56,78 +74,107 @@ class CameraGLCanvas : public nanogui::GLCanvas {
         fragment_shader
     );
 
-    MatrixXu indices(3, 12); /* Draw a cube */
+    MatrixXu indices(3, 2);
     indices.col( 0) << 0, 1, 3;
-    indices.col( 1) << 3, 2, 1;
-    indices.col( 2) << 3, 2, 6;
-    indices.col( 3) << 6, 7, 3;
-    indices.col( 4) << 7, 6, 5;
-    indices.col( 5) << 5, 4, 7;
-    indices.col( 6) << 4, 5, 1;
-    indices.col( 7) << 1, 0, 4;
-    indices.col( 8) << 4, 0, 3;
-    indices.col( 9) << 3, 7, 4;
-    indices.col(10) << 5, 6, 2;
-    indices.col(11) << 2, 1, 5;
+    indices.col( 1) << 1, 2, 3;
 
-    MatrixXf positions(3, 8);
-    positions.col(0) << -1,  1,  1;
-    positions.col(1) << -1,  1, -1;
-    positions.col(2) <<  1,  1, -1;
-    positions.col(3) <<  1,  1,  1;
-    positions.col(4) << -1, -1,  1;
-    positions.col(5) << -1, -1, -1;
-    positions.col(6) <<  1, -1, -1;
-    positions.col(7) <<  1, -1,  1;
+    MatrixXf verteices(2, 4);
+    verteices.col(0) << 1.0f, -1.0f;
+    verteices.col(1) << 1.0f, 1.0f;
+    verteices.col(2) << -1.0f, 1.0f;
+    verteices.col(3) << -1.0f, -1.0f;
 
-    MatrixXf colors(3, 12);
-    colors.col( 0) << 1, 0, 0;
-    colors.col( 1) << 0, 1, 0;
-    colors.col( 2) << 1, 1, 0;
-    colors.col( 3) << 0, 0, 1;
-    colors.col( 4) << 1, 0, 1;
-    colors.col( 5) << 0, 1, 1;
-    colors.col( 6) << 1, 1, 1;
-    colors.col( 7) << 0.5, 0.5, 0.5;
-    colors.col( 8) << 1, 0, 0.5;
-    colors.col( 9) << 1, 0.5, 0;
-    colors.col(10) << 0.5, 1, 0;
-    colors.col(11) << 0.5, 1, 0.5;
+    MatrixXf textures(2, 4);
+    textures.col(0) << 1.0f, 1.0f;
+    textures.col(1) << 1.0f, 0.0f;
+    textures.col(2) << 0.0f, 0.0f;
+    textures.col(3) << 0.0f, 1.0f;
 
     mShader.bind();
+
+    textureUniformY = mShader.uniform("tex_y");
+    textureUniformU = mShader.uniform("tex_u");
+    textureUniformV = mShader.uniform("tex_v");
+
+    glGenTextures(1, &id_y);
+    glBindTexture(GL_TEXTURE_2D, id_y);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        
+    glGenTextures(1, &id_u);
+    glBindTexture(GL_TEXTURE_2D, id_u);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        
+    glGenTextures(1, &id_v);
+    glBindTexture(GL_TEXTURE_2D, id_v);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     mShader.uploadIndices(indices);
 
-    mShader.uploadAttrib("position", positions);
-    mShader.uploadAttrib("color", colors);
+    mShader.uploadAttrib("vertexIn", verteices);
+    mShader.uploadAttrib("textureIn", textures);
   }
 
   ~CameraGLCanvas() {
     mShader.free();
   }
 
-  void setRotation(nanogui::Vector3f vRotation) {
-    mRotation = vRotation;
-  }
-
   virtual void drawGL() override {
     using namespace nanogui;
 
-    mShader.bind();
+    if (yuv420_data) {
+      mShader.bind();
 
-    Matrix4f mvp;
-    mvp.setIdentity();
-    float fTime = (float)glfwGetTime();
-    mvp.topLeftCorner<3,3>() = Eigen::Matrix3f(
-        Eigen::AngleAxisf(mRotation[0]*fTime, Vector3f::UnitX()) *
-        Eigen::AngleAxisf(mRotation[1]*fTime,  Vector3f::UnitY()) *
-        Eigen::AngleAxisf(mRotation[2]*fTime, Vector3f::UnitZ())) * 0.25f;
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, id_y);
+      glTexImage2D(GL_TEXTURE_2D, 
+                   0, 
+                   GL_RED, 
+                   camera_size.x(), 
+                   camera_size.y(), 
+                   0, 
+                   GL_RED, 
+                   GL_UNSIGNED_BYTE, 
+                   yuv420_data);
+      glUniform1i(textureUniformY, 0);
+            
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, id_u);
+      glTexImage2D(GL_TEXTURE_2D, 
+                   0, 
+                   GL_RED, 
+                   camera_size.x() / 2, 
+                   camera_size.y() / 2, 
+                   0, 
+                   GL_RED, 
+                   GL_UNSIGNED_BYTE, 
+                   (char*)yuv420_data + camera_size.x()*camera_size.y());
+      glUniform1i(textureUniformU, 1);
+            
+      glActiveTexture(GL_TEXTURE2);
+      glBindTexture(GL_TEXTURE_2D, id_v);
+      glTexImage2D(GL_TEXTURE_2D, 
+                   0, 
+                   GL_RED, 
+                   camera_size.x() / 2, 
+                   camera_size.y() / 2, 
+                   0, 
+                   GL_RED, 
+                   GL_UNSIGNED_BYTE, 
+                   (char*)yuv420_data + 
+                       camera_size.x()*camera_size.y() * 5 / 4);
+      glUniform1i(textureUniformV, 2);
 
-    mShader.setUniform("modelViewProj", mvp);
-
-    glEnable(GL_DEPTH_TEST);
-    /* Draw 12 triangles starting at index 0 */
-    mShader.drawIndexed(GL_TRIANGLES, 0, 12);
-    glDisable(GL_DEPTH_TEST);
+      mShader.drawIndexed(GL_TRIANGLES, 0, 2);
+    }
   }
 
   void setCameraSize(Eigen::Vector2i size) {
@@ -138,11 +185,24 @@ class CameraGLCanvas : public nanogui::GLCanvas {
     return camera_size;
   }
 
+  void setYUVData(unsigned char* data) {
+    yuv420_data = data;
+  }
+
  private:
   nanogui::GLShader mShader;
-  Eigen::Vector3f mRotation;
 
   Eigen::Vector2i camera_size;
+
+  GLuint textureUniformY;
+  GLuint textureUniformU;
+  GLuint textureUniformV;
+
+  GLuint id_y;
+  GLuint id_u;
+  GLuint id_v;
+
+  unsigned char* yuv420_data = nullptr;
 };
 
 
@@ -152,9 +212,16 @@ class ExampleApplication : public nanogui::Screen {
       nanogui::Screen(Eigen::Vector2i(800, 600), "NanoGUI Test", true) {
     using namespace nanogui;
 
+    img = cv::imread(FLAGS_picture, cv::IMREAD_COLOR);
+    if(img.empty()) {
+        LOG(FATAL) << "Could not read the image: " << FLAGS_picture;
+    }
+    img_size = {img.cols, img.rows};
+    cv::cvtColor(img, img, CV_BGR2YUV_I420);
+
     mCanvas = new CameraGLCanvas(this);
     mCanvas->setBackgroundColor({100, 100, 100, 255});
-    mCanvas->setCameraSize({400, 400});
+    mCanvas->setCameraSize(img_size);
 
     mTools = new Widget(this);
     mTools->setLayout(new BoxLayout(
@@ -162,16 +229,12 @@ class ExampleApplication : public nanogui::Screen {
 
     Button *b0 = new Button(mTools, "Random Color");
     b0->setCallback([this]() { 
-      mCanvas->setBackgroundColor(
-          Vector4i(rand() % 256, rand() % 256, rand() % 256, 255)); 
+      // Do nothing 
     });
 
     Button *b1 = new Button(mTools, "Random Rotation");
     b1->setCallback([this]() { 
-      mCanvas->setRotation(
-          nanogui::Vector3f((rand() % 100) / 100.0f, 
-                            (rand() % 100) / 100.0f, 
-                            (rand() % 100) / 100.0f)); 
+      // Do nothing
     });
 
     performLayout();
@@ -219,6 +282,10 @@ class ExampleApplication : public nanogui::Screen {
     mTools->setPosition(
         {(window_size.x() - tool_size.x()) / 2, canvas_height + window_margin});
     
+    if (!img.empty()) {
+      mCanvas->setYUVData(reinterpret_cast<unsigned char*>(img.data));
+    }
+
     performLayout();
     Screen::draw(ctx);
   }
@@ -226,9 +293,10 @@ class ExampleApplication : public nanogui::Screen {
  private:
   CameraGLCanvas *mCanvas;
   Widget *mTools;
-};
 
-DEFINE_string(picture, "", "Sample picture path file");
+  Eigen::Vector2i img_size;
+  cv::Mat img;
+};
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);

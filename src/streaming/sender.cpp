@@ -52,13 +52,13 @@ int main(int argc, char** argv) {
 
     cv::VideoCapture cap;
     if (FLAGS_video != "") {
-        if (!cap.open(FLAGS_video)) {
+      if (!cap.open(FLAGS_video)) {
         LOG(FATAL) << "Cannot open video file";  
-        }
+      }
     } else {
-        if (!cap.open(FLAGS_camera)) {
+      if (!cap.open(FLAGS_camera)) {
         LOG(FATAL) << "Cannot open camera";
-        }
+      }
     }
 
     relay::codec::H264Encoder encoder;
