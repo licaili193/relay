@@ -1,21 +1,33 @@
 #include "nanogui_includes.h"
+#include <atomic>
+#include <chrono>
+#include <iostream>
+#include <memory>
 #include <string>
-
-#include <glog/logging.h>
-#include <gflags/gflags.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/imgproc/types_c.h>
-
-// Includes for the GLTexture class.
+#include <thread>
 #include <cstdint>
 #include <memory>
 #include <utility>
+
+#include <cuda.h>
+#include <signal.h>
+#include <unistd.h>
+
+#include "practical_socket.h"
+#include <glog/logging.h>
+#include <gflags/gflags.h>
+
+#include "NvCodecUtils.h"
+#include "bidi_tcp_socket.h"
+#include "nv_hevc_decoder.h"
+
 
 #if defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 
-DEFINE_string(picture, "", "Sample picture path file");
+DEFINE_string(foreign_addr, "127.0.0.1", "Foreign address");
+DEFINE_int32(foreign_port, 6000, "Foreign port");
 
 class CameraGLCanvas : public nanogui::GLCanvas {
  public:
@@ -206,22 +218,15 @@ class CameraGLCanvas : public nanogui::GLCanvas {
 };
 
 
-class ExampleApplication : public nanogui::Screen {
+class Visualizer : public nanogui::Screen {
  public:
-  ExampleApplication() : 
+  Visualizer() : 
       nanogui::Screen(Eigen::Vector2i(800, 600), "NanoGUI Test", true) {
     using namespace nanogui;
 
-    img = cv::imread(FLAGS_picture, cv::IMREAD_COLOR);
-    if(img.empty()) {
-        LOG(FATAL) << "Could not read the image: " << FLAGS_picture;
-    }
-    img_size = {img.cols, img.rows};
-    cv::cvtColor(img, img, CV_BGR2YUV_I420);
-
     mCanvas = new CameraGLCanvas(this);
     mCanvas->setBackgroundColor({100, 100, 100, 255});
-    mCanvas->setCameraSize(img_size);
+    mCanvas->setCameraSize({640, 360});
 
     mTools = new Widget(this);
     mTools->setLayout(new BoxLayout(
@@ -252,6 +257,30 @@ class ExampleApplication : public nanogui::Screen {
   }
 
   virtual void draw(NVGcontext *ctx) {
+    CHECK(decoder) << "No decoder";
+    CHECK(socket) << "No socket";
+
+    socket->comsume([&](std::deque<std::string>& buffer){
+      while (!buffer.empty()) {
+        decoder->push(std::move(buffer.front()));
+        buffer.pop_front();
+      }
+    });
+
+    bool got_decoded_frame = false;
+    decoder->comsume([&](std::deque<std::string>& buffer) {
+      if (!buffer.empty()) {
+        internal_buffer = std::move(buffer.front());
+        got_decoded_frame = true;
+        mCanvas->setYUVData(
+            const_cast<unsigned char*>(
+                reinterpret_cast<const unsigned char*>(
+                    internal_buffer.c_str())));
+        mCanvas->setCameraSize({640, 360});
+        buffer.pop_front();
+      }
+    });
+
     /* Draw the user interface */
     float camera_aspect_ratio = 
         static_cast<float>(mCanvas->cameraSize().x()) / 
@@ -281,21 +310,27 @@ class ExampleApplication : public nanogui::Screen {
 
     mTools->setPosition(
         {(window_size.x() - tool_size.x()) / 2, canvas_height + window_margin});
-    
-    if (!img.empty()) {
-      mCanvas->setYUVData(reinterpret_cast<unsigned char*>(img.data));
-    }
 
     performLayout();
     Screen::draw(ctx);
+  }
+  
+  void setDecoder(relay::codec::NvHEVCDecoder* d) {
+    decoder = d;
+  }
+
+  void setSocket(relay::communication::BiDirectionalTCPSocket* s) {
+    socket = s;
   }
 
  private:
   CameraGLCanvas *mCanvas;
   Widget *mTools;
 
-  Eigen::Vector2i img_size;
-  cv::Mat img;
+  relay::codec::NvHEVCDecoder* decoder = nullptr;
+  relay::communication::BiDirectionalTCPSocket* socket = nullptr;
+
+  std::string internal_buffer;
 };
 
 int main(int argc, char** argv) {
@@ -303,15 +338,41 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   try {
+    LOG(INFO) << "Connecting to server: "
+              << FLAGS_foreign_addr 
+              << ":" 
+              << FLAGS_foreign_port;
+
+    relay::communication::BiDirectionalTCPSocket bidi_sock(
+        new TCPSocket(FLAGS_foreign_addr, FLAGS_foreign_port));
+
+    int iGpu = 0;
+    ck(cuInit(0));
+    int nGpu = 0;
+    ck(cuDeviceGetCount(&nGpu));
+    if (iGpu < 0 || iGpu >= nGpu) {
+        LOG(FATAL) << "GPU ordinal out of range. Should be within"
+                    " [" << 0 << ", " << nGpu - 1 << "]";
+    }
+
+    CUcontext cuContext = NULL;
+    createCudaContext(&cuContext, iGpu, 0);
+    
+    relay::codec::NvHEVCDecoder decoder(cuContext);
+
     nanogui::init();
 
     /* scoped variables */ 
     {
-      nanogui::ref<ExampleApplication> app = new ExampleApplication();
+      nanogui::ref<Visualizer> app = new Visualizer();
+      app->setDecoder(&decoder);
+      app->setSocket(&bidi_sock);
       app->drawAll();
       app->setVisible(true);
       nanogui::mainloop();
     }
+    
+    bidi_sock.stop();
 
     nanogui::shutdown();
   } catch (const std::runtime_error &e) {

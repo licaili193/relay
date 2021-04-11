@@ -1,15 +1,19 @@
 project(visualization)
 
-add_executable (nanovg_example 
-    nanovg_example.cpp
+cuda_add_executable (hevc_visualizer 
+    hevc_visualizer.cpp
 )
 
-target_link_libraries (nanovg_example PUBLIC 
+target_link_libraries (hevc_visualizer ${CUDA_LINK_LIBRARIES_KEYWORD} 
     Eigen3::Eigen
-    nanovg
-    ${NANOGUI_LIBRARY}
+    nanovg   
+    cuda
+    nv_codecs
+    practical_socket
+    bidi_socket
+    ${NANOGUI_LIBRARY} 
     ${OPENGL_LIBRARIES}
-    ${OpenCV_LIBS}
+    ${CUDA_LIBRARY}
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
 )
