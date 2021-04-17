@@ -26,6 +26,19 @@ target_link_libraries (sender PUBLIC
     ${GFLAGS_LIBRARIES}
 )
 
+add_executable (sample_sender 
+    sample_sender.cpp
+)
+
+target_link_libraries (sample_sender PUBLIC 
+    codecs
+    practical_socket
+    bidi_socket
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
 add_executable (receiver 
     receiver.cpp
 )
@@ -71,6 +84,21 @@ cuda_add_executable (nv_hevc_sender
 )
 
 target_link_libraries (nv_hevc_sender ${CUDA_LINK_LIBRARIES_KEYWORD} 
+    cuda
+    nv_codecs
+    practical_socket
+    bidi_socket
+    ${CUDA_LIBRARY}
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
+cuda_add_executable (sample_nv_hevc_sender 
+    sample_nv_hevc_sender.cpp
+)
+
+target_link_libraries (sample_nv_hevc_sender ${CUDA_LINK_LIBRARIES_KEYWORD} 
     cuda
     nv_codecs
     practical_socket

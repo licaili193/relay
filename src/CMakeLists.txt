@@ -1,5 +1,6 @@
 add_subdirectory (communication)
 add_subdirectory (third_party)
+add_subdirectory (resources)
 add_subdirectory (streaming)
 add_subdirectory (scripts)
 add_subdirectory (visualization)
