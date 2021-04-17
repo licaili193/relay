@@ -34,7 +34,7 @@ class NvHEVCEncoder : public AsyncPayloadFramework {
 
   uint32_t index_ = 0;
 
-  NV_ENC_BUFFER_FORMAT buffer_format_ = NV_ENC_BUFFER_FORMAT_IYUV;
+  NV_ENC_BUFFER_FORMAT buffer_format_ = NV_ENC_BUFFER_FORMAT_NV12;
 
   CUcontext cu_context_ = NULL;
 
