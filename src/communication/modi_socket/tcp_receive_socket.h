@@ -15,7 +15,7 @@
 namespace relay {
 namespace communication {
 
-constexpr size_t buffer_size = 1024;
+constexpr size_t buffer_size = 10240;
 
 class TCPReceiveSocket {
  public:

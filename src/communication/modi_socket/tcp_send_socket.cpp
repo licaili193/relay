@@ -29,6 +29,7 @@ void TCPSendSocket::worker(TCPSocket* sock) {
           socket->send(payload.c_str() + index, send_size);
           index += send_size;
         }
+        buffer_.pop_front();
       }
     }
   } catch (SocketException &e) {
