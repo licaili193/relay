@@ -18,7 +18,7 @@
 #include <gflags/gflags.h>
 
 #include "NvCodecUtils.h"
-#include "bidi_tcp_socket.h"
+#include "tcp_receive_socket.h"
 #include "nv_hevc_decoder.h"
 
 
@@ -319,7 +319,7 @@ class Visualizer : public nanogui::Screen {
     decoder = d;
   }
 
-  void setSocket(relay::communication::BiDirectionalTCPSocket* s) {
+  void setSocket(relay::communication::TCPReceiveSocket* s) {
     socket = s;
   }
 
@@ -328,7 +328,7 @@ class Visualizer : public nanogui::Screen {
   Widget *mTools;
 
   relay::codec::NvHEVCDecoder* decoder = nullptr;
-  relay::communication::BiDirectionalTCPSocket* socket = nullptr;
+  relay::communication::TCPReceiveSocket* socket = nullptr;
 
   std::string internal_buffer;
 };
@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
               << ":" 
               << FLAGS_foreign_port;
 
-    relay::communication::BiDirectionalTCPSocket bidi_sock(
+    relay::communication::TCPReceiveSocket modi_sock(
         new TCPSocket(FLAGS_foreign_addr, FLAGS_foreign_port));
 
     int iGpu = 0;
@@ -366,13 +366,13 @@ int main(int argc, char** argv) {
     {
       nanogui::ref<Visualizer> app = new Visualizer();
       app->setDecoder(&decoder);
-      app->setSocket(&bidi_sock);
+      app->setSocket(&modi_sock);
       app->drawAll();
       app->setVisible(true);
       nanogui::mainloop();
     }
     
-    bidi_sock.stop();
+    modi_sock.stop();
 
     nanogui::shutdown();
   } catch (const std::runtime_error &e) {

@@ -1,6 +1,7 @@
 project(communication)
 
 add_subdirectory (bidi_socket)
+add_subdirectory (modi_socket)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})

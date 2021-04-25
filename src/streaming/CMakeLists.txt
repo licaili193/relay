@@ -102,7 +102,7 @@ target_link_libraries (sample_nv_hevc_sender ${CUDA_LINK_LIBRARIES_KEYWORD}
     cuda
     nv_codecs
     practical_socket
-    bidi_socket
+    modi_socket
     ${CUDA_LIBRARY}
     ${OpenCV_LIBS}
     ${GLOG_LIBRARIES}

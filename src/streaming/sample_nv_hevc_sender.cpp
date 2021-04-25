@@ -16,7 +16,7 @@
 #include <opencv2/imgproc/types_c.h>
 
 #include "NvCodecUtils.h"
-#include "bidi_tcp_socket.h"
+#include "tcp_send_socket.h"
 #include "nv_hevc_encoder.h"
 
 DEFINE_string(foreign_addr, "127.0.0.1", "Foreign address");
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
               << ":" 
               << FLAGS_foreign_port;
 
-    relay::communication::BiDirectionalTCPSocket bidi_sock(
+    relay::communication::TCPSendSocket modi_sock(
         new TCPSocket(FLAGS_foreign_addr, FLAGS_foreign_port));
 
     cv::VideoCapture cap;
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
     relay::codec::NvHEVCEncoder encoder(cuContext);
 
-    while (bidi_sock.running()) {
+    while (modi_sock.running()) {
       if (running.load()) {
         auto start = std::chrono::system_clock::now();
 
@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
 
         if (frame.rows <= 0 || frame.cols <= 0) {
           running.store(false);
-          bidi_sock.stop();
+          modi_sock.stop();
           break;
         }
 
@@ -112,17 +112,17 @@ int main(int argc, char** argv) {
         
         encoder.comsume([&](std::deque<std::string>& buffer) {
           if (!buffer.empty()) {
-            bidi_sock.push(buffer.front().size(), buffer.front().c_str());
+            modi_sock.push(buffer.front().size(), buffer.front().c_str());
             buffer.pop_front();
           }
         });
 
         std::this_thread::sleep_until(start + std::chrono::milliseconds(100));
       } else {
-        bidi_sock.stop();
+        modi_sock.stop();
       }
     }
-    bidi_sock.join();
+    modi_sock.join();
     encoder.stop();
     encoder.join();
   } catch (const std::exception& e) {

@@ -10,7 +10,7 @@ target_link_libraries (hevc_visualizer ${CUDA_LINK_LIBRARIES_KEYWORD}
     cuda
     nv_codecs
     practical_socket
-    bidi_socket
+    modi_socket
     ${NANOGUI_LIBRARY} 
     ${OPENGL_LIBRARIES}
     ${CUDA_LIBRARY}
