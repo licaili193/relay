@@ -23,12 +23,24 @@ void TCPSendSocket::worker(TCPSocket* sock) {
       std::lock_guard<std::mutex> guard(mutex_);
       while (!buffer_.empty()) {
         const auto& payload = buffer_.front();
+        uint8_t packet_num = (payload.size() + packet_size - 1) / packet_size;
         size_t index = 0;
+        uint8_t packet_index = 1;
         while (index < payload.size()) {
-          size_t send_size = std::min(payload.size() - index, buffer_size);
-          socket->send(payload.c_str() + index, send_size);
+          size_t send_size = std::min(payload.size() - index, packet_size);
+          PacketHeader header = 
+              {frame_index_, packet_num, packet_index, send_size, 0};
+          header.makePacketHeader(send_buffer_);
+          memcpy(send_buffer_ + header_size, 
+                 payload.c_str() + index, 
+                 send_size);
+          socket->send(send_buffer_, header_size + packet_size);
           index += send_size;
+          packet_index++;
         }
+
+        frame_index_++;
+
         buffer_.pop_front();
       }
     }

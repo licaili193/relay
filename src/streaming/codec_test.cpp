@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
   while (running.load()) {
     auto start = std::chrono::system_clock::now();
     
-    encoder.comsume([&](std::deque<std::string>& buffer) {
+    encoder.consume([&](std::deque<std::string>& buffer) {
       if (!buffer.empty()) {
         decoder.push(std::move(buffer.front()));
         buffer.pop_front();
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 
     cv::Mat decoded_frame;
     bool got_decoded_frame = false;
-    decoder.comsume([&](std::deque<std::string>& buffer) {
+    decoder.consume([&](std::deque<std::string>& buffer) {
       if (!buffer.empty()) {
         decoded_frame = cv::Mat(360 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
             reinterpret_cast<const void*>(buffer.front().c_str())));

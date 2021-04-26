@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     relay::communication::BiDirectionalTCPSocket bidi_sock(
         new TCPSocket(FLAGS_foreign_addr, FLAGS_foreign_port));
     while (bidi_sock.running()) {
-      bidi_sock.comsume([](std::deque<std::string>& buffer){
+      bidi_sock.consume([](std::deque<std::string>& buffer){
         while (!buffer.empty()) {
           LOG(INFO) << "Message received: " << buffer.front();
           buffer.pop_front();

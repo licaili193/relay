@@ -10,12 +10,15 @@ TCPReceiveSocket::TCPReceiveSocket(
     TCPSocket* sock, size_t max_buffer_size) {
   max_buffer_size_ = max_buffer_size;
 
+  received_time_ = std::chrono::system_clock::now();
+
   running_.store(true);
   thread_ = std::thread(&TCPReceiveSocket::worker, this, sock);
 }
 
 void TCPReceiveSocket::worker(TCPSocket* sock) {
-  char buffer[buffer_size];
+  char buffer[packet_size + header_size];
+  size_t received_size = 0;
 
   std::unique_ptr<TCPSocket>socket(sock);
   socket->setBlocking(false);
@@ -24,17 +27,38 @@ void TCPReceiveSocket::worker(TCPSocket* sock) {
       socket->check();
 
       int recv_sz = 0;
-      while (true) {
-        recv_sz = socket->recv(buffer, buffer_size);
-        if (recv_sz <= 0) {
-          break;
+      int accum_recv_sz = 0;
+      do {
+        recv_sz = socket->recv(buffer + accum_recv_sz, 
+                               packet_size + header_size - accum_recv_sz);
+        auto now = std::chrono::system_clock::now();
+        if (recv_sz > 0) {
+          received_time_ = now;
+          accum_recv_sz += recv_sz;
+        } else {
+          if (now - received_time_ > 
+              std::chrono::milliseconds(timeout_ms)) {
+            break;
+          }
         }
-
+      } while (accum_recv_sz < packet_size + header_size);
+      
+      if (accum_recv_sz < packet_size + header_size) {
+        continue;
+      }
+      
+      auto header = PacketHeader::parsePacketHeader(buffer);
+      memcpy(receive_buffer_ + received_size, 
+             buffer + header_size, 
+             header.packet_size);
+      received_size += header.packet_size;
+      if (header.packet_num == header.packet_index) {
         std::lock_guard<std::mutex> guard(mutex_);
         if (buffer_.size() >= max_buffer_size_) {
           buffer_.pop_front();
         }
-        buffer_.emplace_back(buffer, recv_sz);
+        buffer_.emplace_back(receive_buffer_, received_size);
+        received_size = 0;
       }
     }
   } catch (SocketException &e) {
@@ -47,7 +71,7 @@ void TCPReceiveSocket::stop() {
   running_.store(false);
 }
 
-void TCPReceiveSocket::comsume(
+void TCPReceiveSocket::consume(
     function<void(std::deque<std::string>&)> fun) {
   std::lock_guard<std::mutex> guard(mutex_);
   fun(buffer_);

@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 
     while (bidi_sock.running()) {
       if (running.load()) {
-        bidi_sock.comsume([&](std::deque<std::string>& buffer){
+        bidi_sock.consume([&](std::deque<std::string>& buffer){
           while (!buffer.empty()) {
             decoder.push(std::move(buffer.front()));
             buffer.pop_front();
@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
 
         cv::Mat decoded_frame;
         bool got_decoded_frame = false;
-        decoder.comsume([&](std::deque<std::string>& buffer) {
+        decoder.consume([&](std::deque<std::string>& buffer) {
           if (!buffer.empty()) {
             decoded_frame = cv::Mat(
                 360 * 3 / 2, 640, CV_8UC1, const_cast<void*>(

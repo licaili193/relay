@@ -24,7 +24,7 @@ void AsyncPayloadFramework::push(std::string payload) {
 }
 
 
-void AsyncPayloadFramework::comsume(
+void AsyncPayloadFramework::consume(
     std::function<void(std::deque<std::string>&)> fun) {
   std::lock_guard<std::mutex> guard(send_mutex_);
   fun(send_buffer_);

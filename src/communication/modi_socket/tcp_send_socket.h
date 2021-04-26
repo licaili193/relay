@@ -12,10 +12,10 @@
 #include "practical_socket.h"
 #include <glog/logging.h>
 
+#include "packet_header.h"
+
 namespace relay {
 namespace communication {
-
-constexpr size_t buffer_size = 10240;
 
 class TCPSendSocket {
  public:
@@ -33,10 +33,12 @@ class TCPSendSocket {
   std::atomic_bool running_;
   std::mutex mutex_;
   size_t max_buffer_size_ = 10;
+  size_t frame_index_ = 0;
 
   std::thread thread_;
 
   std::deque<std::string> buffer_;
+  char send_buffer_[header_size + packet_size];
 
   void worker(TCPSocket* sock);
 };

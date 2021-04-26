@@ -127,7 +127,7 @@ int main(int argc, char** argv) {
 
     while (bidi_sock.running()) {
       if (running.load()) {
-        bidi_sock.comsume([&](std::deque<std::string>& buffer){
+        bidi_sock.consume([&](std::deque<std::string>& buffer){
           while (!buffer.empty()) {   
             for (auto it : connection_list) {
               

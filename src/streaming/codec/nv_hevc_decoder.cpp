@@ -31,7 +31,10 @@ void NvHEVCDecoder::worker() {
       int nVideoBytes = 0, nFrameReturned = 0;
       uint8_t **ppFrame;
       int64_t *pTimestamp;
-      dec.Decode(
+      try {
+        const uint32_t tries = 3;
+        for (uint32_t i = 0; (i < tries) && (nFrameReturned <= 0); ++i) {
+          dec.Decode(
           reinterpret_cast<const uint8_t*>(payload.c_str()), 
           payload.size(), 
           &ppFrame, 
@@ -39,6 +42,15 @@ void NvHEVCDecoder::worker() {
           CUVID_PKT_ENDOFPICTURE, 
           &pTimestamp, 
           n++);
+        }
+      } catch (NVDECException& e) {
+        std::string err = "Decode failed (" + 
+                          e.getErrorString() + 
+                          ", error " + 
+                          std::to_string(e.getErrorCode()) + 
+                          ")";
+        LOG(ERROR) << err;
+      }
       
       for (int i = 0; i < nFrameReturned; i++) {
         uint8_t *pFrame = ppFrame[i];

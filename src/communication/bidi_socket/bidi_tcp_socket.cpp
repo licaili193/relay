@@ -146,7 +146,7 @@ void BiDirectionalTCPSocket::push(std::string payload) {
   send_buffer_.push_back(std::move(payload));
 }
 
-void BiDirectionalTCPSocket::comsume(
+void BiDirectionalTCPSocket::consume(
     function<void(std::deque<std::string>&)> fun) {
   std::lock_guard<std::mutex> guard(recv_mutex_);
   fun(recv_buffer_);

@@ -42,6 +42,7 @@ void NvHEVCEncoder::worker() {
   encodeConfig.frameIntervalP = 1;
   encodeConfig.encodeCodecConfig.hevcConfig.idrPeriod = 
       NVENC_INFINITE_GOPLENGTH;
+  initializeParams.enablePTD = 1;
 
   encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
   encodeConfig.rcParams.averageBitRate = bitrate_;
@@ -89,9 +90,18 @@ void NvHEVCEncoder::worker() {
           encoderInputFrame->chromaOffsets,
           encoderInputFrame->numChromaPlanes);
 
-      pEnc->EncodeFrame(vPacket);
+      NV_ENC_PIC_PARAMS picParams = {NV_ENC_PIC_PARAMS_VER};
+      if (index_ % idr_interval_ == 0) {
+        picParams.encodePicFlags = NV_ENC_PIC_FLAG_FORCEINTRA | 
+                                   NV_ENC_PIC_FLAG_OUTPUT_SPSPPS |
+                                   NV_ENC_PIC_FLAG_FORCEIDR;
+        pEnc->EncodeFrame(vPacket, &picParams);
+        LOG(INFO) << "Sent one intra frame";
+      } else {
+        pEnc->EncodeFrame(vPacket);
+      }
 
-      index_ += (int)vPacket.size();
+      index_++;
     
       for (std::vector<uint8_t> &packet : vPacket) {
         std::lock_guard<std::mutex> guard(send_mutex_);

@@ -12,17 +12,17 @@
 #include "practical_socket.h"
 #include <glog/logging.h>
 
+#include "packet_header.h"
+
 namespace relay {
 namespace communication {
 
-constexpr size_t buffer_size = 10240;
-
 class TCPReceiveSocket {
  public:
-  TCPReceiveSocket(TCPSocket* sock, size_t max_buffer_size = 100);
+  TCPReceiveSocket(TCPSocket* sock, size_t max_buffer_size = 10);
 
   void stop();
-  void comsume(std::function<void(std::deque<std::string>&)> fun);
+  void consume(std::function<void(std::deque<std::string>&)> fun);
   bool running();
 
   void join();
@@ -31,12 +31,18 @@ class TCPReceiveSocket {
  protected:
   std::atomic_bool running_;
   std::mutex mutex_;
-  size_t max_buffer_size_ = 100;
+  size_t max_buffer_size_ = 10;
 
   uint32_t index_ = 0;
   std::thread thread_;
 
+  std::chrono::system_clock::time_point received_time_;
+  const int timeout_ms = 1000;
+
   std::deque<std::string> buffer_;
+
+  static constexpr size_t receive_buffer_size_ = 87380;
+  char receive_buffer_[receive_buffer_size_];
 
   void worker(TCPSocket* sock);
 };

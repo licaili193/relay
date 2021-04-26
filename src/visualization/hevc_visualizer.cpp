@@ -260,7 +260,7 @@ class Visualizer : public nanogui::Screen {
     CHECK(decoder) << "No decoder";
     CHECK(socket) << "No socket";
 
-    socket->comsume([&](std::deque<std::string>& buffer){
+    socket->consume([&](std::deque<std::string>& buffer){
       while (!buffer.empty()) {
         decoder->push(std::move(buffer.front()));
         buffer.pop_front();
@@ -268,7 +268,7 @@ class Visualizer : public nanogui::Screen {
     });
 
     bool got_decoded_frame = false;
-    decoder->comsume([&](std::deque<std::string>& buffer) {
+    decoder->consume([&](std::deque<std::string>& buffer) {
       if (!buffer.empty()) {
         internal_buffer = std::move(buffer.front());
         got_decoded_frame = true;

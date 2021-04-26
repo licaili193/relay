@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
 
         encoder.push(640 * 360 * 3 / 2, reinterpret_cast<char*>(frame.data));
         
-        encoder.comsume([&](std::deque<std::string>& buffer) {
+        encoder.consume([&](std::deque<std::string>& buffer) {
           if (!buffer.empty()) {
             bidi_sock.push(buffer.front().size(), buffer.front().c_str());
             buffer.pop_front();

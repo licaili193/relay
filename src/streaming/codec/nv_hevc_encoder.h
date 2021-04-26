@@ -32,6 +32,7 @@ class NvHEVCEncoder : public AsyncPayloadFramework {
   float framerate_ = 10;
   uint32_t bitrate_ = 400000;
 
+  uint32_t idr_interval_ = 50;
   uint32_t index_ = 0;
 
   NV_ENC_BUFFER_FORMAT buffer_format_ = NV_ENC_BUFFER_FORMAT_NV12;
