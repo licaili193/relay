@@ -48,6 +48,11 @@ void TCPReceiveSocket::worker(TCPSocket* sock) {
       }
       
       auto header = PacketHeader::parsePacketHeader(buffer);
+      if ((received_size + header.packet_size > receive_buffer_size_) || 
+          (header.packet_size > packet_size)) {
+        LOG(WARNING) << "Received one frame with invalid header";
+        continue;
+      }
       memcpy(receive_buffer_ + received_size, 
              buffer + header_size, 
              header.packet_size);
