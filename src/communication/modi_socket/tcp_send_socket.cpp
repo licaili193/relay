@@ -29,7 +29,7 @@ void TCPSendSocket::worker(TCPSocket* sock) {
         while (index < payload.size()) {
           size_t send_size = std::min(payload.size() - index, packet_size);
           PacketHeader header = 
-              {frame_index_, packet_num, packet_index, send_size, 0};
+              {frame_index_, packet_num, packet_index, 0, send_size, 0};
           header.makePacketHeader(send_buffer_);
           memcpy(send_buffer_ + header_size, 
                  payload.c_str() + index, 
