@@ -17,4 +17,6 @@ endif()
 add_library( fecpp-object OBJECT ${FECPP_SOURCES} )
 set_property( TARGET fecpp-object PROPERTY POSITION_INDEPENDENT_CODE ON )
 add_library( fecpp        SHARED $<TARGET_OBJECTS:fecpp-object> )
-set_target_properties( fecpp PROPERTIES PUBLIC_HEADER fecpp.h )
+target_include_directories (fecpp PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)

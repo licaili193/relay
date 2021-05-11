@@ -61,6 +61,7 @@
         "list": "cpp",
         "set": "cpp",
         "future": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "unordered_set": "cpp"
     }
 }

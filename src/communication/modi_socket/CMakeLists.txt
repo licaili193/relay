@@ -1,3 +1,5 @@
+add_subdirectory(fec)
+
 add_library (modi_socket SHARED 
   tcp_send_socket.cpp
   tcp_receive_socket.cpp
