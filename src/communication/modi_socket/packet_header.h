@@ -8,6 +8,7 @@ namespace communication {
 
 constexpr size_t header_size = 19;
 constexpr size_t packet_size = 512;
+constexpr size_t extra_packet = 2;
 
 struct PacketHeader {
   uint32_t id;
@@ -40,7 +41,7 @@ struct PacketHeader {
   }
 };
 
-}
-}
+}  // namespace communication
+}  // namespace relay
 
 #endif
