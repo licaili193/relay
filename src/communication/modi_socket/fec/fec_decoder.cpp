@@ -51,8 +51,11 @@ bool FECDecoder::push(size_t i, size_t n, size_t k, size_t r, size_t s,
 
   // Step 3: create the incoming frame if we don't have one
   if (!has_frame) {
-    if (n >= reset_threshold_ || k >= n || s > packet_size * 10) {
-      LOG(ERROR) << "Bad package received once";
+    if (n >= buffer_size_ || k >= n || s > packet_size * k) {
+      LOG(ERROR) << "Bad package received once - n: " 
+                 << n << " k: "
+                 << k << " s: "
+                 << s;
       return false;
     }
     incoming_frames_.emplace_back(i, n, k, s);
@@ -74,7 +77,7 @@ bool FECDecoder::push(size_t i, size_t n, size_t k, size_t r, size_t s,
 
   // Step 5: check if we have an output
   if (frame.index_pool.size() >= frame.k) {
-    uint8_t temp_buffer[packet_size * 10];
+    uint8_t temp_buffer[packet_size * buffer_size_];
     try {
       fecpp::fec_code codec(frame.k, frame.n);
       codec.decode(frame.pool, packet_size,

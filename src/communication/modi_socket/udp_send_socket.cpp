@@ -34,7 +34,7 @@ void UDPSendSocket::worker() {
         uint8_t packet_num = (payload.size() + packet_size - 1) / packet_size;
         fecpp::fec_code codec(packet_num, packet_num + extra_packet);
         codec.encode(reinterpret_cast<const uint8_t*>(payload.c_str()),
-                     payload.size(),
+                     packet_num * packet_size,
                      [&](size_t i, size_t n, const uint8_t* ptr, size_t s) {
                        size_t send_size = std::min(s, packet_size);
                        PacketHeader header = {frame_index_,

@@ -109,6 +109,21 @@ target_link_libraries (sample_nv_hevc_sender ${CUDA_LINK_LIBRARIES_KEYWORD}
     ${GFLAGS_LIBRARIES}
 )
 
+cuda_add_executable (sample_nv_hevc_udp_sender 
+    sample_nv_hevc_udp_sender.cpp
+)
+
+target_link_libraries (sample_nv_hevc_udp_sender ${CUDA_LINK_LIBRARIES_KEYWORD} 
+    cuda
+    nv_codecs
+    practical_socket
+    modi_socket
+    ${CUDA_LIBRARY}
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
 cuda_add_executable (nv_hevc_receiver 
     nv_hevc_receiver.cpp
 )
