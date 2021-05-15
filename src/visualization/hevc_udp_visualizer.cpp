@@ -107,27 +107,6 @@ class CameraGLCanvas : public nanogui::GLCanvas {
     textureUniformU = mShader.uniform("tex_u");
     textureUniformV = mShader.uniform("tex_v");
 
-    glGenTextures(1, &id_y);
-    glBindTexture(GL_TEXTURE_2D, id_y);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        
-    glGenTextures(1, &id_u);
-    glBindTexture(GL_TEXTURE_2D, id_u);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        
-    glGenTextures(1, &id_v);
-    glBindTexture(GL_TEXTURE_2D, id_v);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
     mShader.uploadIndices(indices);
 
     mShader.uploadAttrib("vertexIn", verteices);
@@ -145,7 +124,12 @@ class CameraGLCanvas : public nanogui::GLCanvas {
       mShader.bind();
 
       glActiveTexture(GL_TEXTURE0);
+      glGenTextures(1, &id_y);
       glBindTexture(GL_TEXTURE_2D, id_y);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       glTexImage2D(GL_TEXTURE_2D, 
                    0, 
                    GL_RED, 
@@ -156,9 +140,14 @@ class CameraGLCanvas : public nanogui::GLCanvas {
                    GL_UNSIGNED_BYTE, 
                    yuv420_data);
       glUniform1i(textureUniformY, 0);
-            
-      glActiveTexture(GL_TEXTURE1);
+          
+      glActiveTexture(GL_TEXTURE1);   
+      glGenTextures(1, &id_u);
       glBindTexture(GL_TEXTURE_2D, id_u);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       glTexImage2D(GL_TEXTURE_2D, 
                    0, 
                    GL_RED, 
@@ -169,9 +158,14 @@ class CameraGLCanvas : public nanogui::GLCanvas {
                    GL_UNSIGNED_BYTE, 
                    (char*)yuv420_data + camera_size.x()*camera_size.y());
       glUniform1i(textureUniformU, 1);
-            
+          
       glActiveTexture(GL_TEXTURE2);
+      glGenTextures(1, &id_v);
       glBindTexture(GL_TEXTURE_2D, id_v);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       glTexImage2D(GL_TEXTURE_2D, 
                    0, 
                    GL_RED, 
@@ -185,6 +179,10 @@ class CameraGLCanvas : public nanogui::GLCanvas {
       glUniform1i(textureUniformV, 2);
 
       mShader.drawIndexed(GL_TRIANGLES, 0, 2);
+
+      glDeleteTextures(1, &id_y);
+      glDeleteTextures(1, &id_u);
+      glDeleteTextures(1, &id_v);
     }
   }
 
