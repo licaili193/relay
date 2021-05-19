@@ -103,9 +103,9 @@ bool FECDecoder::push(size_t i, size_t n, size_t k, size_t r, size_t s,
       }
     }
     std::vector<IncomingFrame> new_incoming_frames;
-    for (auto& f : incoming_frames_) {
-      if (to_erase.find(f.index) == to_erase.end()) {
-        new_incoming_frames.push_back(std::move(f));
+    for (size_t j = 0; j < incoming_frames_.size(); j++) {
+      if (to_erase.find(j) == to_erase.end()) {
+        new_incoming_frames.push_back(std::move(incoming_frames_[j]));
       }
     }
     incoming_frames_ = std::move(new_incoming_frames);
@@ -117,7 +117,9 @@ std::string& FECDecoder::getOutput() {
   return output_;
 }
 
-bool FECDecoder::hasOutput() const { return has_output_; }
+bool FECDecoder::hasOutput() const {
+  return has_output_; 
+}
 
 }  // namespace fec
 }  // namespace relay
