@@ -36,7 +36,7 @@ void NvHEVCEncoder::worker() {
   pEnc->CreateDefaultEncoderParams(
       &initializeParams, 
       NV_ENC_CODEC_HEVC_GUID, 
-      NV_ENC_PRESET_LOW_LATENCY_HP_GUID);
+      NV_ENC_PRESET_LOW_LATENCY_HQ_GUID);
     
   encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH;
   encodeConfig.frameIntervalP = 1;
