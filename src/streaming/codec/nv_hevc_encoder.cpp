@@ -48,8 +48,7 @@ void NvHEVCEncoder::worker() {
   encodeConfig.rcParams.averageBitRate = bitrate_;
   encodeConfig.rcParams.vbvBufferSize = 
       (encodeConfig.rcParams.averageBitRate * 
-       initializeParams.frameRateDen / 
-       initializeParams.frameRateNum) * 5;
+       initializeParams.frameRateDen / initializeParams.frameRateNum);
   encodeConfig.rcParams.maxBitRate = encodeConfig.rcParams.averageBitRate;
   encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
 
