@@ -267,14 +267,14 @@ class Visualizer : public nanogui::Screen {
     bool got_decoded_frame = false;
     decoder->consume([&](std::deque<std::string>& buffer) {
       if (!buffer.empty()) {
-        internal_buffer = std::move(buffer.front());
+        internal_buffer = std::move(buffer.back());
         got_decoded_frame = true;
         mCanvas->setYUVData(
             const_cast<unsigned char*>(
                 reinterpret_cast<const unsigned char*>(
                     internal_buffer.c_str())));
         mCanvas->setCameraSize({640, 360});
-        buffer.pop_front();
+        buffer.clear();
       }
     });
 
@@ -300,9 +300,9 @@ class Visualizer : public nanogui::Screen {
           {(canvas_width - camera_aspect_ratio * canvas_height) / 2, 0});
     } else {
       mCanvas->setSize(
-          {canvas_width, camera_aspect_ratio * canvas_width});
+          {canvas_width, canvas_width / camera_aspect_ratio});
       mCanvas->setPosition(
-          {0, (canvas_height - camera_aspect_ratio * canvas_width) / 2});
+          {0, (canvas_height - canvas_width / camera_aspect_ratio) / 2});
     }
 
     mTools->setPosition(

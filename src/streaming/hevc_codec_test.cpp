@@ -71,11 +71,10 @@ int main(int argc, char** argv) {
     auto start = std::chrono::system_clock::now();
     
     encoder.consume([&](std::deque<std::string>& buffer) {
-      if (!buffer.empty()) {
-        LOG(INFO) << "Decoder push";
-        decoder.push(std::move(buffer.back()));
-        buffer.clear();
+      for (auto& b : buffer) {
+        decoder.push(std::move(b));
       }
+      buffer.clear();
     });
     
     cv::Mat frame;
@@ -148,7 +147,7 @@ int main(int argc, char** argv) {
     }
 
     index++;
-    std::this_thread::sleep_until(start + std::chrono::milliseconds(100));
+    std::this_thread::sleep_until(start + std::chrono::milliseconds(33));
     if (FLAGS_frame_cap > 0 && index > FLAGS_frame_cap) {
       running.store(false);
     }

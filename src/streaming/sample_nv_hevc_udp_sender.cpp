@@ -126,13 +126,13 @@ int main(int argc, char** argv) {
         encoder.push(640 * 360 * 3 / 2, reinterpret_cast<char*>(frame.data));
         
         encoder.consume([&](std::deque<std::string>& buffer) {
-          if (!buffer.empty()) {
-            modi_sock.push(buffer.front().size(), buffer.front().c_str());
-            buffer.pop_front();
+          for (auto& b : buffer) {
+            modi_sock.push(b.size(), b.c_str());
           }
+          buffer.clear();
         });
 
-        std::this_thread::sleep_until(start + std::chrono::milliseconds(100));
+        std::this_thread::sleep_until(start + std::chrono::milliseconds(33));
       } else {
         modi_sock.stop();
       }
