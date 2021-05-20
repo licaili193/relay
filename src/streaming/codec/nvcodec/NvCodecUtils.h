@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <ios>
+#include <iostream>
 #include <sstream>
 #include <thread>
 #include <list>
