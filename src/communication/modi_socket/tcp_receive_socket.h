@@ -13,16 +13,17 @@
 #include <glog/logging.h>
 
 #include "packet_header.h"
+#include "receive_interface.h"
 
 namespace relay {
 namespace communication {
 
-class TCPReceiveSocket {
+class TCPReceiveSocket : public ReceiveInterface {
  public:
   TCPReceiveSocket(TCPSocket* sock, size_t max_buffer_size = 10);
 
   void stop();
-  void consume(std::function<void(std::deque<std::string>&)> fun);
+  void consume(std::function<void(std::deque<std::string>&)> fun) override;
   bool running();
 
   void join();
