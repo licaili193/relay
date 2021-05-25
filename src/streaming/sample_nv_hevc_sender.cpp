@@ -104,6 +104,20 @@ int main(int argc, char** argv) {
             frame = frame(cv::Rect(0, (frame.rows - 360) / 2, 640, 360));
             }
         }
+
+        std::chrono::milliseconds ms = 
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch());
+        std::string msg = std::to_string(ms.count());
+        cv::putText(frame, 
+                    msg.c_str(), 
+                    cvPoint(30,30), 
+                    cv::FONT_HERSHEY_COMPLEX_SMALL, 
+                    0.8, 
+                    cvScalar(200, 200, 250), 
+                    1, 
+                    cv::LINE_AA);
+
         cv::imshow("camera", frame);
         cv::waitKey(1);
         cv::cvtColor(frame, frame, CV_BGR2YUV_I420);
