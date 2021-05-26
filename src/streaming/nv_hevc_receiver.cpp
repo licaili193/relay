@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
         decoder.consume([&](std::deque<std::string>& buffer) {
           if (!buffer.empty()) {
             decoded_frame = cv::Mat(
-                360 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
+                480 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
                     reinterpret_cast<const void*>(buffer.front().c_str()))).
                         clone();
             buffer.pop_front();

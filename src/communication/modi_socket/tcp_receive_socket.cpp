@@ -49,7 +49,11 @@ void TCPReceiveSocket::worker(TCPSocket* sock) {
       if ((received_size + header.size > receive_buffer_size_) ||
           (header.size > packet_size)) {
         LOG(WARNING) << "Received one frame with invalid header";
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        char temp_buffer[packet_size];
+        size_t retry_attemps = 3;
+        do {
+          socket->recv(temp_buffer, packet_size);
+        } while (retry_attemps--);
         continue;
       }
       memcpy(receive_buffer_ + received_size, buffer + header_size,

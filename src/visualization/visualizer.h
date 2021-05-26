@@ -12,7 +12,7 @@ namespace visualization {
 
 class Visualizer : public nanogui::Screen {
  public:
-  Visualizer(size_t width = 640, size_t height = 360) : 
+  Visualizer(size_t width = 640, size_t height = 480) : 
       nanogui::Screen(Eigen::Vector2i(800, 600), "NanoGUI Test", true) {
     using namespace nanogui;
 
@@ -128,7 +128,7 @@ class Visualizer : public nanogui::Screen {
   std::string internal_buffer;
 
   size_t image_width = 640;
-  size_t image_height = 360;
+  size_t image_height = 480;
 };
 
 }

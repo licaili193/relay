@@ -90,22 +90,22 @@ int main(int argc, char** argv) {
 
         double aspect_ratio = 
             static_cast<double>(frame.cols) / static_cast<double>(frame.rows);
-        if (aspect_ratio > 640.0 / 360.0) {
-          double scale = 360.0 / static_cast<double>(frame.rows);  
+        if (aspect_ratio > 640.0 / 480.0) {
+          double scale = 480.0 / static_cast<double>(frame.rows);  
           cv::resize(
               frame, frame, cv::Size(0, 0), scale, scale, cv::INTER_LINEAR);
-          frame = frame(cv::Rect((frame.cols - 640) / 2, 0, 640, 360));
+          frame = frame(cv::Rect((frame.cols - 640) / 2, 0, 640, 480));
         } else {
           double scale = 640.0 / static_cast<double>(frame.cols);  
           cv::resize(
               frame, frame, cv::Size(0, 0), scale, scale, cv::INTER_LINEAR);
-          frame = frame(cv::Rect(0, (frame.rows - 360) / 2, 640, 360));
+          frame = frame(cv::Rect(0, (frame.rows - 480) / 2, 640, 480));
         }
         cv::imshow("camera", frame);
         cv::waitKey(1);
         cv::cvtColor(frame, frame, CV_BGR2YUV_I420);
 
-        encoder.push(640 * 360 * 3 / 2, reinterpret_cast<char*>(frame.data));
+        encoder.push(640 * 480 * 3 / 2, reinterpret_cast<char*>(frame.data));
         
         encoder.consume([&](std::deque<std::string>& buffer) {
           if (!buffer.empty()) {

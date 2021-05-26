@@ -71,7 +71,7 @@ inline int swap_int32(int in) {
 
 void onOpen(Server* s, websocketpp::connection_hdl hdl) {
   JsmpegHeader header = 
-      {{'j','s','m','p'}, swap_int16(640),  swap_int16(360)};
+      {{'j','s','m','p'}, swap_int16(640),  swap_int16(480)};
 
   try {
     s->send(hdl, &header, sizeof(header), websocketpp::frame::opcode::binary);

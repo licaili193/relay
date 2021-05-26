@@ -81,19 +81,19 @@ int main(int argc, char** argv) {
     cap >> frame;
 
     if (frame.rows > 0 && frame.cols > 0) {
-      if (frame.rows != 360 || frame.cols != 640) {
+      if (frame.rows != 480 || frame.cols != 640) {
         double aspect_ratio = 
             static_cast<double>(frame.cols) / static_cast<double>(frame.rows);
-        if (aspect_ratio > 640.0 / 360.0) {
-            double scale = 360.0 / static_cast<double>(frame.rows);  
+        if (aspect_ratio > 640.0 / 480.0) {
+            double scale = 480.0 / static_cast<double>(frame.rows);  
           cv::resize(
               frame, frame, cv::Size(0, 0), scale, scale, cv::INTER_LINEAR);
-          frame = frame(cv::Rect((frame.cols - 640) / 2, 0, 640, 360));
+          frame = frame(cv::Rect((frame.cols - 640) / 2, 0, 640, 480));
         } else {
           double scale = 640.0 / static_cast<double>(frame.cols);  
           cv::resize(
               frame, frame, cv::Size(0, 0), scale, scale, cv::INTER_LINEAR);
-          frame = frame(cv::Rect(0, (frame.rows - 360) / 2, 640, 360));
+          frame = frame(cv::Rect(0, (frame.rows - 480) / 2, 640, 480));
         }
       }
 
@@ -117,18 +117,18 @@ int main(int argc, char** argv) {
       break;
     }
 
-    cv::resize(frame, frame, cv::Size(640, 360), 0, 0, cv::INTER_LINEAR);
+    cv::resize(frame, frame, cv::Size(640, 480), 0, 0, cv::INTER_LINEAR);
     cv::cvtColor(frame, frame, CV_BGR2YUV_I420);
 
     LOG(INFO) << "Encoder push";
-    encoder.push(640 * 360 * 3 / 2, reinterpret_cast<char*>(frame.data));
+    encoder.push(640 * 480 * 3 / 2, reinterpret_cast<char*>(frame.data));
 
     cv::Mat decoded_frame;
     bool got_decoded_frame = false;
     decoder.consume([&](std::deque<std::string>& buffer) {
       if (!buffer.empty()) {
         LOG(INFO) << "Decoder get";
-        decoded_frame = cv::Mat(360 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
+        decoded_frame = cv::Mat(480 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
             reinterpret_cast<const void*>(buffer.back().c_str())));
         buffer.clear();
         got_decoded_frame = true;

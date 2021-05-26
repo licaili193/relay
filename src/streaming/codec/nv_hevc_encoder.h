@@ -22,13 +22,13 @@ class NvHEVCEncoder : public AsyncPayloadFramework {
  public:
   NvHEVCEncoder(CUcontext cu_context,
                 uint16_t width = 640, 
-                uint16_t height = 360, 
+                uint16_t height = 480, 
                 float framerate = 30, 
                 uint32_t bitrate = 800000);
 
  protected:
   uint16_t width_ = 640;
-  uint16_t height_ = 360;
+  uint16_t height_ = 480;
   float framerate_ = 30;
   uint32_t bitrate_ = 800000;
 

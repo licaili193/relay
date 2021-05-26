@@ -25,13 +25,13 @@ namespace codec {
 class H264Encoder : public AsyncPayloadFramework {
  public:
   H264Encoder(uint16_t width = 640, 
-              uint16_t height = 360, 
+              uint16_t height = 480, 
               float framerate = 10, 
               uint32_t bitrate = 400000);
 
  protected:
   uint16_t width_ = 640;
-  uint16_t height_ = 360;
+  uint16_t height_ = 480;
   float framerate_ = 10;
   uint32_t bitrate_ = 400000;
 

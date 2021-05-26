@@ -71,16 +71,16 @@ int main(int argc, char** argv) {
       break;
     }
 
-    cv::resize(frame, frame, cv::Size(640, 360), 0, 0, cv::INTER_LINEAR);
+    cv::resize(frame, frame, cv::Size(640, 480), 0, 0, cv::INTER_LINEAR);
     cv::cvtColor(frame, frame, CV_BGR2YUV_I420);
 
-    encoder.push(640 * 360 * 3 / 2, reinterpret_cast<char*>(frame.data));
+    encoder.push(640 * 480 * 3 / 2, reinterpret_cast<char*>(frame.data));
 
     cv::Mat decoded_frame;
     bool got_decoded_frame = false;
     decoder.consume([&](std::deque<std::string>& buffer) {
       if (!buffer.empty()) {
-        decoded_frame = cv::Mat(360 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
+        decoded_frame = cv::Mat(480 * 3 / 2, 640, CV_8UC1, const_cast<void*>(
             reinterpret_cast<const void*>(buffer.front().c_str())));
         buffer.pop_front();
         got_decoded_frame = true;

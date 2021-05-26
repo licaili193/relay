@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     /* scoped variables */ 
     {
       nanogui::ref<relay::visualization::Visualizer> app = 
-          new relay::visualization::Visualizer(640, 360);
+          new relay::visualization::Visualizer(640, 480);
       app->setDecoder(&decoder);
       app->setVideoSocket(
           dynamic_cast<relay::communication::ReceiveInterface*>(&modi_sock));
