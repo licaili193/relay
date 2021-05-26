@@ -50,10 +50,7 @@ void TCPReceiveSocket::worker(TCPSocket* sock) {
           (header.size > packet_size)) {
         LOG(WARNING) << "Received one frame with invalid header";
         char temp_buffer[packet_size];
-        size_t retry_attemps = 3;
-        do {
-          socket->recv(temp_buffer, packet_size);
-        } while (retry_attemps--);
+        socket->recv(temp_buffer, packet_size);
         continue;
       }
       memcpy(receive_buffer_ + received_size, buffer + header_size,
