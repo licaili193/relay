@@ -25,6 +25,8 @@ struct VehicleState {
     memcpy(buffer + 1, &gear, 1);
     memcpy(buffer + 2, &speed, 4);
   }
+
+  constexpr static size_t size = 6;
 };
 
 struct ControlCommand {
@@ -38,17 +40,21 @@ struct ControlCommand {
 
   static ControlCommand parseControlCommand(const char* buffer) {
     ControlCommand res;
-    memcpy(&res.yaw_control, buffer, 1);
-    memcpy(&res.throttle_control, buffer + 1, 1);
-    memcpy(&res.gear, buffer + 2, 1);
+    memcpy(&res.takeover_request, buffer, 1);
+    memcpy(&res.yaw_control, buffer + 1, 1);
+    memcpy(&res.throttle_control, buffer + 2, 1);
+    memcpy(&res.gear, buffer + 3, 1);
     return res;
   }
 
   void makeControlCommand(char* buffer) {
-    memcpy(buffer, &yaw_control, 1);
-    memcpy(buffer + 1, &throttle_control, 1);
-    memcpy(buffer + 2, &gear, 1);
+    memcpy(buffer, &takeover_request, 1);
+    memcpy(buffer + 1, &yaw_control, 1);
+    memcpy(buffer + 2, &throttle_control, 1);
+    memcpy(buffer + 3, &gear, 1);
   }
+
+  constexpr static size_t size = 4;
 };
 
 #endif
