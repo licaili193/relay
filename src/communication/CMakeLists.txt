@@ -28,3 +28,17 @@ target_link_libraries (bidi_tcp_client_test PUBLIC
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
 )
+
+add_executable (shm_test 
+    shm_test.cpp
+)
+
+target_link_libraries (shm_test PUBLIC 
+    spmc_queue
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
+target_include_directories(shm_test PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src/communication/messages
+)
