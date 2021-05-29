@@ -1,8 +1,8 @@
 #!/bin/bash
 
 addr=$1
-port_2=$2
-port_3=$3
+port_1=$2
+port_2=$3
 
 tab="--tab"
 declare -a cmd_list=(
