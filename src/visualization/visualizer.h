@@ -3,9 +3,13 @@
 
 #include "nanogui_includes.h"
 #include "camera_gl_canvas.h"
+#include "dash_board.h"
+#include "control_panel.h"
 
 #include "receive_interface.h"
 #include "nv_hevc_decoder.h"
+#include "shm_socket.h"
+#include "messages.h"
 
 namespace relay {
 namespace visualization {
@@ -25,17 +29,10 @@ class Visualizer : public nanogui::Screen {
 
     mTools = new Widget(this);
     mTools->setLayout(new BoxLayout(
-        Orientation::Horizontal, Alignment::Middle, 0, 5));
+        Orientation::Horizontal, Alignment::Middle, 0, 20));
 
-    Button *b0 = new Button(mTools, "Random Color");
-    b0->setCallback([this]() { 
-      // Do nothing 
-    });
-
-    Button *b1 = new Button(mTools, "Random Rotation");
-    b1->setCallback([this]() { 
-      // Do nothing
-    });
+    d0 = new DashBoard(mTools);
+    c0 = new ControlPanel(mTools);
 
     performLayout();
   }
@@ -44,16 +41,18 @@ class Visualizer : public nanogui::Screen {
     if (Screen::keyboardEvent(key, scancode, action, modifiers)) {
       return true;
     }
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-      setVisible(false);
-      return true;
+
+    if (c0) {
+      c0->forceRoutedKeyboardEvent(key, scancode, action, modifiers);
     }
+
     return false;
   }
 
   virtual void draw(NVGcontext *ctx) {
     CHECK(decoder) << "No decoder";
     CHECK(receive_interface) << "No receive interface";
+    CHECK(shm_interface) << "No SHM interface";
 
     receive_interface->consume([&](std::deque<std::string>& buffer){
       while (!buffer.empty()) {
@@ -106,6 +105,23 @@ class Visualizer : public nanogui::Screen {
     mTools->setPosition(
         {(window_size.x() - tool_size.x()) / 2, canvas_height + window_margin});
 
+    while (true) {
+      VehicleState* state = shm_interface->receive();
+      if (state) {
+        d0->setControlMode(state->control_mode);
+        d0->setGear(state->gear);
+        d0->setSpeed(state->speed);
+      } else {
+        break;
+      }
+    }
+
+    ControlCommand cmd = {c0->getTakeoverRequest(), 
+                          c0->getYawControl(), 
+                          c0->getThrottleControl(), 
+                          c0->getGear()};
+    shm_interface->send(cmd);
+
     performLayout();
     Screen::draw(ctx);
   }
@@ -118,12 +134,20 @@ class Visualizer : public nanogui::Screen {
     receive_interface = s;
   }
 
+  void setSHMSocket(
+      relay::communication::SHMSocket<ControlCommand, VehicleState>* h) {
+    shm_interface = h;
+  }
+
  private:
   CameraGLCanvas *mCanvas;
   Widget *mTools;
+  DashBoard *d0 = nullptr;
+  ControlPanel *c0 = nullptr;
 
   relay::codec::NvHEVCDecoder* decoder = nullptr;
   relay::communication::ReceiveInterface* receive_interface = nullptr;
+  relay::communication::SHMSocket<ControlCommand, VehicleState>* shm_interface = nullptr;
 
   std::string internal_buffer;
 

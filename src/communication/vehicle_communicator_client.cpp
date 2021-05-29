@@ -60,10 +60,19 @@ int main(int argc, char** argv) {
         }
       });
       if (running.load()) {
-        ControlCommand* command = shms.receive();
-        if (command) {
-          char buffer[ControlCommand::size];
-          command->makeControlCommand(buffer);
+        char buffer[ControlCommand::size];
+        bool has_message = false;
+        while (true) {
+          ControlCommand* command = shms.receive();
+          if (command) {
+            command->makeControlCommand(buffer);
+            has_message = true;
+          } else {
+            break;
+          }
+        }
+
+        if (has_message) {
           bidi_sock.push(ControlCommand::size, buffer);
         }
       } else {

@@ -42,6 +42,9 @@ int main(int argc, char** argv) {
     relay::communication::TCPReceiveSocket modi_sock(
         new TCPSocket(FLAGS_foreign_addr, FLAGS_foreign_port));
 
+    relay::communication::SHMSocket<ControlCommand, VehicleState> 
+        shms("control_command", "vehicle_state");
+
     int iGpu = 0;
     ck(cuInit(0));
     int nGpu = 0;
@@ -65,6 +68,7 @@ int main(int argc, char** argv) {
       app->setDecoder(&decoder);
       app->setVideoSocket(
           dynamic_cast<relay::communication::ReceiveInterface*>(&modi_sock));
+      app->setSHMSocket(&shms);
       app->drawAll();
       app->setVisible(true);
       nanogui::mainloop();

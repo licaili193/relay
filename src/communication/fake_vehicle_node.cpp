@@ -65,10 +65,11 @@ int main(int argc, char** argv) {
         char buffer[VehicleState::size];
         state.makeVehicleState(buffer);
         bidi_sock.push(VehicleState::size, buffer);
-        LOG(INFO) << "Send <<< ";
-        LOG(INFO) << "CM: " << static_cast<int>(state.control_mode);
-        LOG(INFO) << "GR: " << static_cast<int>(state.gear);
-        LOG(INFO) << "SP: " << static_cast<int>(state.speed);
+        // LOG(INFO) << "Send <<< ";
+        // LOG(INFO) << "CM: " << static_cast<int>(state.control_mode);
+        // LOG(INFO) << "GR: " << static_cast<int>(state.gear);
+        // LOG(INFO) << "SP: " << static_cast<int>(state.speed);
+        speed += 1000;
       } else {
         bidi_sock.stop();
       }
