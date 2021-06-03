@@ -105,15 +105,11 @@ class Visualizer : public nanogui::Screen {
     mTools->setPosition(
         {(window_size.x() - tool_size.x()) / 2, canvas_height + window_margin});
 
-    while (true) {
-      VehicleState* state = shm_interface->receive();
-      if (state) {
-        d0->setControlMode(state->control_mode);
-        d0->setGear(state->gear);
-        d0->setSpeed(state->speed);
-      } else {
-        break;
-      }
+    VehicleState* state = shm_interface->receive();
+    if (state) {
+      d0->setControlMode(state->control_mode);
+      d0->setGear(state->gear);
+      d0->setSpeed(state->speed);
     }
 
     ControlCommand cmd = {c0->getTakeoverRequest(), 

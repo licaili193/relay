@@ -14,11 +14,11 @@ template<class SendT, class ReceiveT>
 class SHMSocket {
  public:
   SHMSocket(std::string send_channel, std::string receive_channel) {
-    receive_q_ = shmmap<SPMCQueue<ReceiveT, 1024>>(receive_channel.c_str());
+    receive_q_ = shmmap<SPMCQueue<ReceiveT, 1>>(receive_channel.c_str());
     if (receive_q_) {
       reader_ = receive_q_->getReader();
     }
-    send_q_ = shmmap<SPMCQueue<SendT, 1024>>(send_channel.c_str());
+    send_q_ = shmmap<SPMCQueue<SendT, 1>>(send_channel.c_str());
   }
 
   void send(const SendT& to_send) {
@@ -39,9 +39,9 @@ class SHMSocket {
   }
 
  private:
-  SPMCQueue<SendT, 1024>* send_q_ = nullptr;
-  SPMCQueue<ReceiveT, 1024>* receive_q_ = nullptr;
-  typename SPMCQueue<ReceiveT, 1024>::Reader reader_;
+  SPMCQueue<SendT, 1>* send_q_ = nullptr;
+  SPMCQueue<ReceiveT, 1>* receive_q_ = nullptr;
+  typename SPMCQueue<ReceiveT, 1>::Reader reader_;
 };
 
 }    
