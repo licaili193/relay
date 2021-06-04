@@ -73,6 +73,14 @@ class ControlPanel : public nanogui::Widget {
       const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
       const unsigned char* buttons = 
           glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttonCount);
+      throttle_ = int(100 * -axes[1]);
+      steering_ = int(100 * -axes[0]);
+      if (buttons[0] == 1 && !takeover_) {
+        takeover_ = true;
+      }
+      if (buttons[2] == 1 && takeover_) {
+        takeover_ = false;
+      }
     } else {
       has_joystick = false;
 

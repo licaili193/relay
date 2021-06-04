@@ -46,13 +46,26 @@ void TCPReceiveSocket::worker(TCPSocket* sock) {
       }
 
       auto header = PacketHeader::parsePacketHeader(buffer);
+      bool sanity_check_failed = false;
       if ((received_size + header.size > receive_buffer_size_) ||
           (header.size > packet_size)) {
+        sanity_check_failed = true;
+      }
+      if (header.packet_num < header.packet_index || 
+          header.packet_index == 0 ||
+          header.packet_num == 0 ||
+          header.packet_needed != 0 ||
+          header.timestamp != 0) {
+        sanity_check_failed = true;
+      }
+
+      if (sanity_check_failed) {
         LOG(WARNING) << "Received one frame with invalid header";
-        char temp_buffer[packet_size];
-        socket->recv(temp_buffer, packet_size);
+        char temp_buffer[packet_size * 3];
+        socket->recv(temp_buffer, packet_size * 3);
         continue;
       }
+
       memcpy(receive_buffer_ + received_size, buffer + header_size,
              header.size);
       received_size += header.size;
