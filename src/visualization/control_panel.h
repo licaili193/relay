@@ -24,6 +24,11 @@ class ControlPanel : public nanogui::Widget {
 
   void forceRoutedKeyboardEvent(
       int key, int scancode, int action, int modifiers) {
+    // If there is a joystick presents, ignore keyboard control
+    if (has_joystick) {
+      return;
+    }
+
     if (glfwGetKey(screen()->glfwWindow(), GLFW_KEY_UP) == GLFW_PRESS) {
       throttle_ += t_sensitivity_;
       if (throttle_ > 100) {
@@ -60,38 +65,50 @@ class ControlPanel : public nanogui::Widget {
   }
 
   virtual void draw(NVGcontext *ctx) override {
-    if (throttle_time_ + std::chrono::milliseconds(500) < 
-        std::chrono::system_clock::now()) {
-      if (throttle_ != 0) {
-        if (throttle_ > 0) {
-          throttle_ -= t_damping_;
-          if (throttle_ < 0) {
-            throttle_ = 0;
-          }
-        }  else {
-          throttle_ += t_damping_;
+    if (glfwJoystickPresent(GLFW_JOYSTICK_1) == GL_TRUE) {
+      has_joystick = true;
+      
+      // TODO (YUHAN)
+      int axesCount, buttonCount;
+      const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
+      const unsigned char* buttons = 
+          glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttonCount);
+    } else {
+      has_joystick = false;
+
+      if (throttle_time_ + std::chrono::milliseconds(500) < 
+          std::chrono::system_clock::now()) {
+        if (throttle_ != 0) {
           if (throttle_ > 0) {
-            throttle_ = 0;
-          }
-        } 
-        // throttle_time_ = std::chrono::system_clock::now();
+            throttle_ -= t_damping_;
+            if (throttle_ < 0) {
+              throttle_ = 0;
+            }
+          }  else {
+            throttle_ += t_damping_;
+            if (throttle_ > 0) {
+              throttle_ = 0;
+            }
+          } 
+          // throttle_time_ = std::chrono::system_clock::now();
+        }
       }
-    }
-    if (steer_time_ + std::chrono::milliseconds(500) < 
-        std::chrono::system_clock::now()) {
-      if (steering_ != 0) {
-        if (steering_ > 0) {
-          steering_ -= s_damping_;
-          if (steering_ < 0) {
-            steering_ = 0;
-          }
-        }  else {
-          steering_ += s_damping_;
+      if (steer_time_ + std::chrono::milliseconds(500) < 
+          std::chrono::system_clock::now()) {
+        if (steering_ != 0) {
           if (steering_ > 0) {
-            steering_ = 0;
-          }
-        } 
-        // steer_time_ = std::chrono::system_clock::now();
+            steering_ -= s_damping_;
+            if (steering_ < 0) {
+              steering_ = 0;
+            }
+          }  else {
+            steering_ += s_damping_;
+            if (steering_ > 0) {
+              steering_ = 0;
+            }
+          } 
+          // steer_time_ = std::chrono::system_clock::now();
+        }
       }
     }
 
@@ -157,6 +174,8 @@ class ControlPanel : public nanogui::Widget {
   bool takeover_ = false;
   int8_t throttle_ = 0;
   int8_t steering_ = 0;
+
+  bool has_joystick = false;
 };
 
 }
