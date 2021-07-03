@@ -562,7 +562,9 @@ NvDecoder::NvDecoder(CUcontext cuContext, bool bUseDeviceFrame, cudaVideoCodec e
 
     CUVIDPARSERPARAMS videoParserParameters = {};
     videoParserParameters.CodecType = eCodec;
-    videoParserParameters.ulMaxNumDecodeSurfaces = 1;
+    videoParserParameters.ulMaxNumDecodeSurfaces = 0;
+    videoParserParameters.ulErrorThreshold = 100;
+    videoParserParameters.ulClockRate = -1;
     videoParserParameters.ulMaxDisplayDelay = bLowLatency ? 0 : 1;
     videoParserParameters.pUserData = this;
     videoParserParameters.pfnSequenceCallback = HandleVideoSequenceProc;
