@@ -91,6 +91,18 @@ target_link_libraries (hevc_codec_test ${CUDA_LINK_LIBRARIES_KEYWORD}
     ${GFLAGS_LIBRARIES}
 )
 
+cuda_add_executable (hevc_sync_codec_test 
+    hevc_sync_codec_test.cpp
+)
+
+target_link_libraries (hevc_sync_codec_test ${CUDA_LINK_LIBRARIES_KEYWORD} 
+    cuda
+    nv_sync_codecs
+    ${OpenCV_LIBS}
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
 cuda_add_executable (nv_hevc_sender 
     nv_hevc_sender.cpp
 )

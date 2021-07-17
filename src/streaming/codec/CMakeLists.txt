@@ -33,3 +33,19 @@ target_link_libraries (nv_codecs ${CUDA_LINK_LIBRARIES_KEYWORD}
   nvencoder
   nvdecoder
 )
+
+cuda_add_library (nv_sync_codecs SHARED 
+  nv_hevc_sync_encoder.cpp
+  nv_hevc_sync_decoder.cpp
+)
+
+target_include_directories (nv_sync_codecs PUBLIC 
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries (nv_sync_codecs ${CUDA_LINK_LIBRARIES_KEYWORD} 
+  ${CUDA_LIBRARY}    
+  ${GLOG_LIBRARIES}
+  nvencoder
+  nvdecoder
+)
