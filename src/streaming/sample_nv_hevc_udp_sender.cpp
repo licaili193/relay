@@ -17,7 +17,7 @@
 
 #include "NvCodecUtils.h"
 #include "udp_send_socket.h"
-#include "nv_hevc_encoder.h"
+#include "nv_hevc_sync_encoder.h"
 
 DEFINE_string(foreign_addr, "127.0.0.1", "Foreign address");
 DEFINE_int32(foreign_port, 6000, "Foreign port");
@@ -70,7 +70,9 @@ int main(int argc, char** argv) {
     CUcontext cuContext = NULL;
     createCudaContext(&cuContext, iGpu, 0);
 
-    relay::codec::NvHEVCEncoder encoder(cuContext);
+    relay::codec::NvHEVCSyncEncoder encoder(cuContext);
+
+    char send_buffer[64000];
 
     while (modi_sock.running()) {
       if (running.load()) {
@@ -125,12 +127,10 @@ int main(int argc, char** argv) {
 
         encoder.push(640 * 480 * 3 / 2, reinterpret_cast<char*>(frame.data));
         
-        encoder.consume([&](std::deque<std::string>& buffer) {
-          for (auto& b : buffer) {
-            modi_sock.push(b.size(), b.c_str());
-          }
-          buffer.clear();
-        });
+        size_t size = 0;
+        while (encoder.get(size, send_buffer)) {
+          modi_sock.push(size, send_buffer);
+        }
 
         std::this_thread::sleep_until(start + std::chrono::milliseconds(33));
       } else {
@@ -138,8 +138,6 @@ int main(int argc, char** argv) {
       }
     }
     modi_sock.join();
-    encoder.stop();
-    encoder.join();
   } catch (const std::exception& e) {
     LOG(FATAL) << "Error occurred when accepting connection: " << e.what();
   }

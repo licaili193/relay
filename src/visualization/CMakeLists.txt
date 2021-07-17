@@ -8,7 +8,7 @@ target_link_libraries (hevc_visualizer ${CUDA_LINK_LIBRARIES_KEYWORD}
     Eigen3::Eigen
     nanovg   
     cuda
-    nv_codecs
+    nv_sync_codecs
     practical_socket
     modi_socket
     shm_socket
@@ -31,7 +31,7 @@ target_link_libraries (hevc_udp_visualizer ${CUDA_LINK_LIBRARIES_KEYWORD}
     Eigen3::Eigen
     nanovg   
     cuda
-    nv_codecs
+    nv_sync_codecs
     practical_socket
     modi_socket
     shm_socket

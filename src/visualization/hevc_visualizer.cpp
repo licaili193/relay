@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     CUcontext cuContext = NULL;
     createCudaContext(&cuContext, iGpu, 0);
     
-    relay::codec::NvHEVCDecoder decoder(cuContext);
+    relay::codec::NvHEVCSyncDecoder decoder(cuContext);
 
     nanogui::init();
 

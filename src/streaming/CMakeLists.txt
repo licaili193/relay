@@ -139,7 +139,7 @@ cuda_add_executable (sample_nv_hevc_udp_sender
 
 target_link_libraries (sample_nv_hevc_udp_sender ${CUDA_LINK_LIBRARIES_KEYWORD} 
     cuda
-    nv_codecs
+    nv_sync_codecs
     practical_socket
     modi_socket
     ${CUDA_LIBRARY}

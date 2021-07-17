@@ -7,7 +7,7 @@
 #include "control_panel.h"
 
 #include "receive_interface.h"
-#include "nv_hevc_decoder.h"
+#include "nv_hevc_sync_decoder.h"
 #include "shm_socket.h"
 #include "messages.h"
 
@@ -35,6 +35,12 @@ class Visualizer : public nanogui::Screen {
     c0 = new ControlPanel(mTools);
 
     performLayout();
+
+    decode_buffer = new char[image_width * image_height * 3];
+  }
+
+  ~Visualizer() {
+    delete[] decode_buffer;
   }
 
   virtual bool keyboardEvent(int key, int scancode, int action, int modifiers) {
@@ -56,22 +62,16 @@ class Visualizer : public nanogui::Screen {
 
     receive_interface->consume([&](std::deque<std::string>& buffer){
       while (!buffer.empty()) {
-        decoder->push(std::move(buffer.front()));
+        decoder->push(buffer.front().size(), buffer.front().c_str());
         buffer.pop_front();
-      }
-    });
 
-    bool got_decoded_frame = false;
-    decoder->consume([&](std::deque<std::string>& buffer) {
-      if (!buffer.empty()) {
-        internal_buffer = std::move(buffer.back());
-        got_decoded_frame = true;
-        mCanvas->setYUVData(
-            const_cast<unsigned char*>(
-                reinterpret_cast<const unsigned char*>(
-                    internal_buffer.c_str())));
-        mCanvas->setCameraSize({image_width, image_height});
-        buffer.clear();
+        size_t size = 0;
+        while (decoder->get(size, decode_buffer));
+        if (size) {
+          mCanvas->setYUVData(
+              reinterpret_cast<unsigned char*>(decode_buffer));
+          mCanvas->setCameraSize({image_width, image_height});
+        }
       }
     });
 
@@ -122,7 +122,7 @@ class Visualizer : public nanogui::Screen {
     Screen::draw(ctx);
   }
   
-  void setDecoder(relay::codec::NvHEVCDecoder* d) {
+  void setDecoder(relay::codec::NvHEVCSyncDecoder* d) {
     decoder = d;
   }
 
@@ -141,11 +141,13 @@ class Visualizer : public nanogui::Screen {
   DashBoard *d0 = nullptr;
   ControlPanel *c0 = nullptr;
 
-  relay::codec::NvHEVCDecoder* decoder = nullptr;
+  relay::codec::NvHEVCSyncDecoder* decoder = nullptr;
   relay::communication::ReceiveInterface* receive_interface = nullptr;
   relay::communication::SHMSocket<ControlCommand, VehicleState>* shm_interface = nullptr;
 
   std::string internal_buffer;
+
+  char* decode_buffer = nullptr;
 
   size_t image_width = 640;
   size_t image_height = 480;
