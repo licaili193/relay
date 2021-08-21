@@ -13,13 +13,29 @@ class ControlPanel : public nanogui::Widget {
   ControlPanel(nanogui::Widget* parent) : nanogui::Widget(parent) {
     using namespace nanogui;
 
-    setLayout(new BoxLayout(
-        Orientation::Vertical, Alignment::Fill, 0, 5));
+    setLayout(new GridLayout(
+        Orientation::Vertical, 2, Alignment::Fill, 0, 5));
     
     control_status_ = new Label(this, "Control Status", "sans-bold");
+    auto button_1 = new Button(this, "Command 1");
+    button_1->setCallback([&] {
+        LOG(INFO) << "Button 1 clicked";
+    });
     throttling_status_ = new Label(this, "Throttling", "sans-bold");
+    auto button_2 = new Button(this, "Command 2");
+    button_2->setCallback([&] {
+        LOG(INFO) << "Button 2 clicked";
+    });
     steering_status_ = new Label(this, "Steering", "sans-bold");
+    auto button_3 = new Button(this, "Command 3");
+    button_3->setCallback([&] {
+        LOG(INFO) << "Button 3 clicked";
+    });
     gear_status_ = new Label(this, "Gear", "sans-bold");
+    auto button_4 = new Button(this, "Command 4");
+    button_4->setCallback([&] {
+        LOG(INFO) << "Button 4 clicked";
+    });
   }
 
   void forceRoutedKeyboardEvent(
