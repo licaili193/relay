@@ -27,6 +27,8 @@
 #endif
 
 DEFINE_int32(port, 6000, "Local port");
+DEFINE_int32(width, 640 * 3, "Window width");
+DEFINE_int32(height, 480, "Window height");
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -62,7 +64,7 @@ int main(int argc, char** argv) {
     /* scoped variables */ 
     {
       nanogui::ref<relay::visualization::Visualizer> app = 
-          new relay::visualization::Visualizer(640 * 3, 480);
+          new relay::visualization::Visualizer(FLAGS_width, FLAGS_height);
       app->setDecoder(&decoder);
       app->setVideoSocket(
           dynamic_cast<relay::communication::ReceiveInterface*>(&modi_sock));
