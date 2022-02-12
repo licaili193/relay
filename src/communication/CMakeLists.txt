@@ -60,6 +60,23 @@ target_include_directories(vehicle_communicator_client PRIVATE
     ${CMAKE_SOURCE_DIR}/src/communication/messages
 )
 
+add_executable (vehicle_communicator_server 
+    vehicle_communicator_server.cpp
+)
+
+target_link_libraries (vehicle_communicator_server PUBLIC 
+    shm_socket
+    practical_socket
+    bidi_socket
+    modi_socket
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+)
+
+target_include_directories(vehicle_communicator_server PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src/communication/messages
+)
+
 add_executable (fake_vehicle_node 
     fake_vehicle_node.cpp
 )
