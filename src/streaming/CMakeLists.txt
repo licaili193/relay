@@ -1,6 +1,8 @@
 project(streaming)
 
 add_subdirectory(codec)
+add_subdirectory(camera_grabber)
+add_subdirectory(image_processing)
 
 add_executable (codec_test 
     codec_test.cpp
