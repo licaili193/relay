@@ -23,7 +23,7 @@ void UDPSendSocket::setForeign(std::string foreign_addr,
 }
 
 void UDPSendSocket::worker() {
-  sock_.setBlocking(false);
+  // sock_.setBlocking(false);
   try {
     while (running_.load()) {
       sock_.check();

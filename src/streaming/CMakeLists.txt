@@ -164,3 +164,19 @@ target_link_libraries (nv_hevc_receiver ${CUDA_LINK_LIBRARIES_KEYWORD}
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
 )
+
+cuda_add_executable (stream_test 
+    stream_test.cpp
+)
+
+target_link_libraries (stream_test ${CUDA_LINK_LIBRARIES_KEYWORD} 
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+    ${CUDA_LIBRARIES}
+    practical_socket
+    modi_socket
+    image_processing
+    cuda
+    camera_grabber
+    nv_sync_codecs
+)
